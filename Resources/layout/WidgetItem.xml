@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:background="#ffffffff">
+    <TextView
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/NotDoneBackground"
+        android:layout_alignTop="@+id/taskNameLine"
+        android:layout_alignBottom="@+id/memoLine" />
+    <LinearLayout
+        android:id="@+id/taskNameLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp">
+        <TextView
+            android:id="@+id/taskName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Task name"
+            android:paddingTop="4dip"
+            android:layout_weight="1"
+            android:textColor="@color/taskNormalText"
+            android:textSize="16dp" />
+        <ImageView
+            android:id="@+id/taskDone"
+            android:src="@drawable/TaskDone"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="4dp"
+            android:alpha="0.25" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/notificationLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/taskNameLine"
+        android:layout_marginLeft="10dp">
+        <TextView
+            android:id="@+id/lastChangedDateLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modified"
+            android:paddingTop="4dip"
+            android:paddingRight="4dip"
+            android:textColor="@color/taskDoneText"
+            android:textSize="13dp" />
+        <TextView
+            android:id="@+id/lastChangedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="28/11/2014"
+            android:paddingTop="4dip"
+            android:textColor="@color/taskDoneText"
+            android:textSize="13dp"
+            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/taskDueLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Due"
+            android:paddingTop="4dip"
+            android:paddingRight="4dip"
+            android:textColor="@color/taskDoneText"
+            android:textSize="13dp" />
+        <TextView
+            android:id="@+id/taskDue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="28/11/2014"
+            android:paddingTop="4dip"
+            android:textColor="@color/taskDoneText"
+            android:textSize="13dp" />
+        <ImageView
+            android:id="@+id/taskNotification"
+            android:src="@drawable/NotificationOff"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:layout_marginRight="4dp"
+            android:alpha="0.7"
+            android:padding="2dp"
+            android:layout_marginTop="3dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/memoLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/notificationLine"
+        android:layout_marginLeft="10dp">
+        <TextView
+            android:id="@+id/taskNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Note"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_weight="1"
+            android:textColor="@color/taskDoneText"
+            android:textSize="13dp" />
+        <ImageView
+            android:id="@+id/taskPriority"
+            android:src="@drawable/StarOn"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:layout_marginRight="4dp" />
+    </LinearLayout>
+</RelativeLayout>

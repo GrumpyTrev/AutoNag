@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- Search, should appear as action button -->
+    <item android:id="@+id/saveTask"
+          android:icon="@android:drawable/ic_menu_save"
+          android:title="Save task"
+          android:visible="false"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/deleteTask"
+          android:icon="@android:drawable/ic_menu_delete"
+          android:title="Delete task"
+          android:showAsAction="ifRoom" />
+</menu>
+

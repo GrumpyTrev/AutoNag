@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true"
+    android:background="#ffa0a0a0"
+    android:paddingTop="3dp"
+    android:paddingRight="3dp"
+    android:paddingLeft="3dp">
+    <EditText
+        android:id="@+id/detailsName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task name"
+        android:selectAllOnFocus="false"
+        android:textColor="#ff000000"
+        android:textColorHint="#ffc4c4c4"
+        android:textStyle="bold"
+        android:typeface="normal"
+        android:textSize="22dp"
+        android:background="#ffefefef"
+        android:textCursorDrawable="@null"
+        android:inputType="textCapSentences"
+        android:imeOptions="actionNext" />
+    <EditText
+        android:id="@+id/detailsNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="top"
+        android:selectAllOnFocus="false"
+        android:inputType="textCapSentences|textMultiLine"
+        android:hint="Note"
+        android:textCursorDrawable="@null"
+        android:textColor="#ff4f4f4f"
+        android:textColorHint="#ffc4c4c4"
+        android:background="#ffefefef"
+        android:lineSpacingExtra="2dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <CheckBox
+            android:text="Done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/detailsDone"
+            android:includeFontPadding="false"
+            android:button="@null"
+            android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_vertical"
+            android:paddingLeft="0dp" />
+        <TextView
+            android:text="Priority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/detailsPriorityLabel"
+            android:textColor="#ffffffff"
+            android:layout_marginLeft="3dp"
+            android:textSize="16dp" />
+        <ImageView
+            android:src="@drawable/StarOff"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/detailsImagePriority"
+            android:padding="-4dp" />
+        <TextView
+            android:text="Due"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/detailsDueDateLabel"
+            android:textColor="#ffffffff"
+            android:layout_marginLeft="3dp"
+            android:textSize="16dp" />
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_width="92dp"
+            android:id="@+id/detailsDueDate"
+            android:textColor="#ffffffff"
+            android:textSize="16dp"
+            android:layout_marginLeft="3dp"
+            android:background="@drawable/textBorder"
+            android:paddingRight="2dp"
+            android:paddingLeft="2dp"
+            android:minWidth="50dp"
+            android:text="14/11/2014" />
+        <ImageView
+            android:src="@drawable/NotificationOn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/detailsImageNotification"
+            android:adjustViewBounds="false" />
+    </LinearLayout>
+</LinearLayout>

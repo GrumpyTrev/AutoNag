@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+Background of items marked as Done
+Choose between two drawables acording to whether the item is selected
+ -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:state_pressed="true" 
+	    android:drawable="@drawable/pressed" />
+	<item
+		android:state_focused="false" 
+	    android:drawable="@drawable/greyedOut" />
+</selector>
