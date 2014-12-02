@@ -58,6 +58,9 @@
     <Compile Include="TaskDatabaseADO.cs" />
     <Compile Include="TaskManager.cs" />
     <Compile Include="TaskRepositoryADO.cs" />
+    <Compile Include="SortOrder.cs" />
+    <Compile Include="SortOrderPersistence.cs" />
+    <Compile Include="HelpDialogueActivity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -66,11 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\values\strings.xml" />
-    <AndroidResource Include="Resources\drawable-hdpi\icon.png" />
-    <AndroidResource Include="Resources\drawable-ldpi\icon.png" />
-    <AndroidResource Include="Resources\drawable-mdpi\icon.png" />
-    <AndroidResource Include="Resources\drawable-xhdpi\icon.png" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\icon.png" />
     <AndroidResource Include="Resources\drawable\pressed.xml" />
     <AndroidResource Include="Resources\drawable\DoneBackground.xml" />
     <AndroidResource Include="Resources\drawable\NotDoneBackground.xml" />
@@ -95,6 +93,18 @@
     </AndroidResource>
     <AndroidResource Include="Resources\drawable\NotificationOn.png" />
     <AndroidResource Include="Resources\drawable\TaskDone.png" />
+    <AndroidResource Include="Resources\drawable\SortDueDateOff.png" />
+    <AndroidResource Include="Resources\drawable\SortStarOff.png" />
+    <AndroidResource Include="Resources\drawable\SortDueDateOn.png" />
+    <AndroidResource Include="Resources\drawable\SortStarOn.png" />
+    <AndroidResource Include="Resources\drawable\SortDoneOff.png" />
+    <AndroidResource Include="Resources\drawable\SortDoneOn.png" />
+    <AndroidResource Include="Resources\raw\info.txt" />
+    <AndroidResource Include="Resources\raw\legal.txt" />
+    <AndroidResource Include="Resources\drawable\Preview.png" />
+    <AndroidResource Include="Resources\layout\About.xml" />
+    <AndroidResource Include="Resources\drawable\icon.png" />
+    <AndroidResource Include="Resources\values\Styles.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -110,5 +120,6 @@
     <Folder Include="Resources\drawable-mdpi\" />
     <Folder Include="Resources\drawable-xhdpi\" />
     <Folder Include="Resources\drawable-xxhdpi\" />
+    <Folder Include="Resources\raw\" />
   </ItemGroup>
 </Project>

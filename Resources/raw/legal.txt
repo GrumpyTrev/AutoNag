@@ -1,0 +1,34 @@
+All rights reserved. Not liable for any damage incurred from 
+use of this software including but not limited to: monetary loss, 
+temporary paralysis, halitosis, spontaneous combustion, 
+road rash, and or premature hair loss.
+
+<h3>Intoduction</h3>
+Simple note/todo list application with a Widget front-end.
+Each note consists of a Task Name and a Note field. The Note field can be of any length.
+The note can be given a Priority and a Due Date, and can be marked as Done.
+The display of notes on the Widget can be sorted by any combination of Done, Priority and Due Date.
+ 
+<h3>Version 1.0 - Known Problems and Missing Features</h3>
+
+1) Although a Notification icon exists and can be set, the notification implementation is outstanding<br>
+2) Only a single set of notes can be displayed.  It is intended for multiple sets of notes toi be availabel for display on different Widgets.<br>
+
+<h3>Instructions for use</h3>
+
+TBA.<br>
+
+<h3>Licensing</h3>
+
+Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 
+files  (the "Software"), to  deal in  the Software without  restriction, including without limitation  the rights to  use, copy, 
+modify,  merge, publish, distribute,  sublicense, and/or sell  copies of  the Software,  and to permit persons to whom the Software 
+is furnished to do so, subject to the following conditions:<br><br>
+ 
+The  above  copyright  notice  and  this permission  notice  shall  be included in all copies or substantial portions of the Software.<br><br>
+ 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.<br><br>
+  

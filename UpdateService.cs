@@ -23,6 +23,8 @@ using Android.Content;
 using Android.Widget;
 using Android.Views;
 
+using Android.Util;
+
 namespace AutoNag
 {
 	[Service(Permission = "android.permission.BIND_REMOTEVIEWS", Exported = false)]
@@ -174,7 +176,10 @@ namespace AutoNag
 		/// </summary>
 		private void LoadTasks()
 		{
-			tasks = TaskManager.GetTasks();
+			// Load the tasks with optional sort order
+			List< Task.SortOrders > sortOrder = SortOrder.GetTaskSortOrder( savedContext, widgetIdentity );
+
+			tasks = TaskManager.GetTasks( sortOrder );
 
 			SetTaskCount( widgetIdentity, tasks.Count );
 
@@ -197,5 +202,4 @@ namespace AutoNag
 		/// </summary>
 		private static Dictionary< int, int > taskCounts = new Dictionary<int, int>();
 	}
-
 }

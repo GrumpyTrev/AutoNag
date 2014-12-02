@@ -7,6 +7,16 @@ namespace AutoNag
 	/// </summary>
 	public class Task
 	{
+		/// <summary>
+		/// The available task sort orders
+		/// </summary>
+		public enum SortOrders
+		{
+			Priority,
+			DueDate,
+			Done
+		}
+
 		public Task ()
 		{
 		}

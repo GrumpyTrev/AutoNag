@@ -20,18 +20,57 @@
             android:layout_gravity="center_vertical"
             android:layout_centerVertical="true"
             android:textSize="16dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp" />
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:paddingLeft="10dp" />
+        <RelativeLayout
+            android:id="@+id/sortIcons"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_toLeftOf="@+id/newTask"
+            android:background="#ff2d2d2d"
+            android:layout_marginRight="15dp"
+            android:layout_centerVertical="true">
+            <ImageView
+                android:id="@+id/sortDueDate"
+                android:src="@drawable/SortDueDateOff"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="false"
+                android:padding="3dp" />
+            <ImageView
+                android:id="@+id/sortPriority"
+                android:src="@drawable/SortStarOff"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="false"
+                android:layout_toRightOf="@id/sortDueDate"
+                android:padding="3dp" />
+            <ImageView
+                android:id="@+id/sortDone"
+                android:src="@drawable/SortDoneOff"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="false"
+                android:layout_gravity="center"
+                android:layout_toRightOf="@id/sortPriority"
+                android:padding="3dp"
+                android:layout_alignParentLeft="false" />
+        </RelativeLayout>
         <ImageView
             android:id="@+id/newTask"
             android:src="@drawable/addtask"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="50dp"
+            android:layout_height="38dp"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="false" />
+            android:layout_centerHorizontal="false"
+            android:paddingTop="8dp"
+            android:paddingRight="10dp"
+            android:paddingLeft="10dp" />
     </RelativeLayout>
     <LinearLayout
         android:layout_width="match_parent"

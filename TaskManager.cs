@@ -11,24 +11,24 @@ namespace AutoNag {
 		{
 		}
 		
-		public static Task GetTask(int id)
+		public static Task GetTask( int id )
 		{
-			return TaskRepositoryADO.GetTask(id);
+			return TaskRepositoryADO.GetTask( id );
 		}
 		
-		public static IList<Task> GetTasks ()
+		public static IList<Task> GetTasks( List< Task.SortOrders > sortOrder )
 		{
-			return new List<Task>(TaskRepositoryADO.GetTasks());
+			return new List<Task>( TaskRepositoryADO.GetTasks( sortOrder ) );
 		}
 		
-		public static int SaveTask (Task item)
+		public static int SaveTask( Task item )
 		{
-			return TaskRepositoryADO.SaveTask(item);
+			return TaskRepositoryADO.SaveTask( item );
 		}
 		
-		public static int DeleteTask(int id)
+		public static int DeleteTask( int id )
 		{
-			return TaskRepositoryADO.DeleteTask(id);
+			return TaskRepositoryADO.DeleteTask( id );
 		}
 	}
 }

@@ -59,9 +59,9 @@ namespace AutoNag
 			return me.db.GetItem(id);
 		}
 
-		public static IEnumerable<Task> GetTasks ()
+		public static IEnumerable<Task> GetTasks ( List< Task.SortOrders > sortOrder )
 		{
-			return me.db.GetItems();
+			return me.db.GetItems( sortOrder );
 		}
 
 		public static int SaveTask (Task item)

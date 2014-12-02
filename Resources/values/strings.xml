@@ -17,4 +17,5 @@
 <resources>
     <string name="widgetName">AutoNag</string>
     <string name="noData">No data</string>
+    <string name="helpTitle">About AutoNag</string>
 </resources>

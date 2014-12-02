@@ -5,6 +5,8 @@ using Mono.Data.Sqlite;
 using System.IO;
 using System.Data;
 
+using Android.Util;
+
 namespace AutoNag
 {
 	/// <summary>
@@ -59,6 +61,12 @@ namespace AutoNag
 			try
 			{
 				toTask.DueDate = DateTime.ParseExact( reader[ "DueDate" ].ToString(), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture );
+
+				// If the day part of the time is the same as that in DateTime.MaxValue then set it to DateTime.MinValue
+				if ( toTask.DueDate.Date == DateTime.MaxValue.Date )
+				{
+					toTask.DueDate = DateTime.MinValue;
+				}
 			}
 			catch ( Exception )
 			{
@@ -77,7 +85,7 @@ namespace AutoNag
 			return toTask;
 		}
 
-		public IEnumerable<Task> GetItems()
+		public IEnumerable<Task> GetItems( List< Task.SortOrders > sortOrder )
 		{
 			List< Task > taskList = new List< Task >();
 
@@ -88,6 +96,14 @@ namespace AutoNag
 
 				SqliteCommand command = connection.CreateCommand();
 				command.CommandText = "SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] from [Items]";
+
+				string orderClause = GetSortOrderClause( sortOrder );
+				if ( orderClause.Length > 0 )
+				{
+					command.CommandText = command.CommandText + " ORDER BY " + orderClause;
+				}
+
+				Log.Debug( "TaskDatabase", string.Format( "Selection string {0}", command.CommandText ) );
 
 				SqliteDataReader reader = command.ExecuteReader();
 				while ( reader.Read() == true )
@@ -147,7 +163,17 @@ namespace AutoNag
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Done } );
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.NotificationRequired } );
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Priority } );
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.DueDate.ToString( "yyyyMMdd" ) } );
+
+				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
+				if ( item.DueDate == DateTime.MinValue )
+				{
+					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = DateTime.MaxValue.ToString( "yyyyMMdd" ) } );
+				}
+				else
+				{
+					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.DueDate.ToString( "yyyyMMdd" ) } );
+				}
+
 				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.ModifiedDate.ToString( "yyyyMMddHHmmss" ) } );
 
 				if ( item.ID != 0 )
@@ -193,6 +219,41 @@ namespace AutoNag
 			}
 
 			return retCode;
+		}
+
+		private string GetSortOrderClause(  List< Task.SortOrders > sortOrder )
+		{
+			string orderClause = "";
+
+			if ( sortOrder != null )
+			{
+				List< Task.SortOrders >.Enumerator enumerator = sortOrder.GetEnumerator();
+				while ( enumerator.MoveNext() == true )
+				{
+					string subClause = "";
+					if ( enumerator.Current == Task.SortOrders.Done )
+					{
+						subClause = "[Done] ASC";
+					}
+					else if ( enumerator.Current == Task.SortOrders.Priority )
+					{
+						subClause = "[Priority] DESC";
+					}
+					else
+					{
+						subClause = "[DueDate] ASC";
+					}
+
+					if ( orderClause.Length > 0 )
+					{
+						orderClause = orderClause + ", ";
+					}
+
+					orderClause = orderClause + subClause;
+				}
+			}
+
+			return orderClause;
 		}
 	}
 }

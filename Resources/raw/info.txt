@@ -1,0 +1,8 @@
+<h3>AutoNag  Note/Todo Management</h3>
+Version 1.0<br>
+Copyright 2014<br>
+
+<b>t.simmonds@virgin.net</b><br><br>
+
+
+
