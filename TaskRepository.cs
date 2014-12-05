@@ -4,14 +4,14 @@
 //
 // Project:     AutoNag
 // Task:        TaskManagement
-// Filename:    TaskManager.cs
+// Filename:    TaskRepository.cs
 // Created by:  T. Simmonds
 //
 //
 // File Description
 // ------------------
 //
-// Purpose:      The TaskManager class is an abstraction on the data access layer.
+// Purpose:      The TaskRepository class is an wrapper around the TaskDatabaseSQLite class that actually performs all of the database operations.
 //				 
 // Description:  As purpose
 //
@@ -36,18 +36,20 @@
 //       Trevor Simmonds,
 //       t.simmonds@virgin.net
 //
-using System.Collections.Generic;
 
-namespace AutoNag
+using System.Collections.Generic;
+using System.IO;
+
+namespace AutoNag 
 {
 	/// <summary>
-	/// The TaskManager class is an abstraction on the data access layer
+	/// The TaskRepository class is an wrapper around the TaskDatabaseSQLite class that actually performs all of the database operations.
 	/// </summary>
-	public abstract class TaskManager 
+	public class TaskRepository 
 	{
 		//
 		// Public methods
-		// 
+		//
 
 		/// <summary>
 		/// Gets the task associated with the specified Id
@@ -56,17 +58,17 @@ namespace AutoNag
 		/// <param name="id">Identifier.</param>
 		public static Task GetTask( int id )
 		{
-			return TaskRepository.GetTask( id );
+			return InstanceProperty.sqliteDatabase.GetItem( id );
 		}
 
 		/// <summary>
 		/// Gets all of the the tasks.
 		/// </summary>
-		/// <returns>The tasks stored in a IList<Task></returns>
+		/// <returns>The tasks stored in a IEnumerable<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public static IList<Task> GetTasks( List< Task.SortOrders > sortOrder )
+		public static IEnumerable<Task> GetTasks( List< Task.SortOrders > sortOrder )
 		{
-			return new List<Task>( TaskRepository.GetTasks( sortOrder ) );
+			return InstanceProperty.sqliteDatabase.GetItems( sortOrder );
 		}
 
 		/// <summary>
@@ -76,7 +78,7 @@ namespace AutoNag
 		/// <param name="item">Item.</param>
 		public static bool SaveTask( Task item )
 		{
-			return TaskRepository.SaveTask( item );
+			return ( InstanceProperty.sqliteDatabase.SaveItem( item ) == SQLiteSingleItemUpdated );
 		}
 
 		/// <summary>
@@ -86,7 +88,7 @@ namespace AutoNag
 		/// <param name="id">Identifier.</param>
 		public static bool DeleteTask( int id )
 		{
-			return TaskRepository.DeleteTask( id );
+			return ( InstanceProperty.sqliteDatabase.DeleteItem( id ) == SQLiteSingleItemUpdated );
 		}
 
 		//
@@ -96,8 +98,47 @@ namespace AutoNag
 		/// <summary>
 		/// Private constructor
 		/// </summary>
-		private TaskManager ()
+		private TaskRepository()
 		{
+			// Instantiate the database	interface
+			sqliteDatabase = new TaskDatabaseSQLite( Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "TaskDatabase.db3" ) );
 		}
-	}
+
+		/// <summary>
+		/// Gets the single instance of this class, creating it if necessary.
+		/// </summary>
+		/// <value>The instance property.</value>
+		private static TaskRepository InstanceProperty
+		{
+			get
+			{
+				if ( instance == null )
+				{
+					instance = new TaskRepository(); 
+				}
+
+				return instance;
+			}
+		}
+
+		//
+		// Private data
+		//
+
+		/// <summary>
+		/// The single instance of the TaskRepository
+		/// </summary>
+		private static TaskRepository instance = null;
+
+		/// <summary>
+		/// The TaskDatabase object used to access the database
+		/// </summary>
+		private TaskDatabaseSQLite sqliteDatabase = null;
+
+		/// <summary>
+		/// Success code for SQLite commands that only affect a single row
+		/// </summary>
+		private const int SQLiteSingleItemUpdated = 1;
+	}	
 }
+

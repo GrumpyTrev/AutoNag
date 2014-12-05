@@ -55,9 +55,7 @@
     <Compile Include="TaskDetailsScreen.cs" />
     <Compile Include="AutoNagWidget.cs" />
     <Compile Include="Task.cs" />
-    <Compile Include="TaskDatabaseADO.cs" />
     <Compile Include="TaskManager.cs" />
-    <Compile Include="TaskRepositoryADO.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="SortOrderPersistence.cs" />
     <Compile Include="HelpDialogueActivity.cs" />
@@ -65,6 +63,8 @@
     <Compile Include="AlarmReceiver.cs" />
     <Compile Include="AlarmInterface.cs" />
     <Compile Include="NotificationCancelReceiver.cs" />
+    <Compile Include="TaskRepository.cs" />
+    <Compile Include="TaskDatabaseSQLite.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
