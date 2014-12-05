@@ -131,24 +131,25 @@ namespace AutoNag
 			// Set up the RemoteViews object to use a RemoteViews adapter. 
 			// This adapter connects to a RemoteViewsService through the specified intent.
 			// This is how you populate the data.
-			views.SetRemoteAdapter( widgetId, Resource.Id.listView, 
-				new Intent( widgetContext, typeof( UpdateService ) )
-					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ) );
+			views.SetRemoteAdapter( widgetId, Resource.Id.listView, new Intent( widgetContext, typeof( UpdateService ) )
+				.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ) );
 
 			// The empty view is displayed when the collection has no items. 
 			// It should be in the same layout used to instantiate the RemoteViews object above.
 			views.SetEmptyView( Resource.Id.listView, Resource.Id.message );
 
 			// Set up an intent template for the list view items to activate the TaskDetailsScreen activity
-			// N.B. Use a unique 'requestCode' value for intents that activate the same activity to differentiate between them
+			// N.B. Use a unique 'requestCode' value for intents that activate the same activity to differentiate between them.
+			// These must be unique for all PendingIntents that have the same type i.e. typeof( TaskDetailsScreen ). As it
+			// is used for TaskID elsewhere don't use any positive integers
 			views.SetPendingIntentTemplate( Resource.Id.listView, 
-				PendingIntent.GetActivity( widgetContext, 0, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
+				PendingIntent.GetActivity( widgetContext, -1, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
 					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ), 
 				PendingIntentFlags.UpdateCurrent ) );
 
 			// Set up an intent to fire when the 'new' icon is clicked
 			views.SetOnClickPendingIntent( Resource.Id.newTask, 
-				PendingIntent.GetActivity( widgetContext, 1, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
+				PendingIntent.GetActivity( widgetContext, -2, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
 					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId )
 					.PutExtra( "TaskID", 0 ), 
 				PendingIntentFlags.UpdateCurrent ) );

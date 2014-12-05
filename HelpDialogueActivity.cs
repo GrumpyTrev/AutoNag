@@ -12,7 +12,6 @@ using Android.Graphics;
 namespace AutoNag
 {
 	[Activity (Label = "@string/helpTitle", Theme = "@style/AppThemeActionBarNoIcon" ) ]
-//	[Activity (Label = "@string/helpTitle" ) ]
 	public class HelpDialogueActivity : Activity
 	{
 		/// <summary>
@@ -24,7 +23,6 @@ namespace AutoNag
 
 		protected override void OnCreate( Bundle savedInstanceState )
 		{
-
 			base.OnCreate(savedInstanceState);
 			SetContentView( Resource.Layout.About );
 
@@ -36,8 +34,6 @@ namespace AutoNag
 			infoView.SetLinkTextColor( Color.White );
 
 			Linkify.AddLinks( infoView, MatchOptions.All );
-
-//			ActionBar.SetDisplayShowHomeEnabled( false );
 		}
 
 		private String ReadRawTextFile( int id ) 

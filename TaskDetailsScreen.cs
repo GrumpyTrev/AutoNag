@@ -73,26 +73,22 @@ namespace AutoNag
 			if ( saveItem.IsVisible == true )
 			{
 				// Check if user wishes to save the changes
-				AlertDialog.Builder confirmationDialogue = new AlertDialog.Builder( this );
-				confirmationDialogue.SetMessage( "Changes have been made to this task. Do you want to save these changes?" );
-
-				confirmationDialogue.SetPositiveButton( "Yes",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					Save();
-				} );
-
-				confirmationDialogue.SetNegativeButton( "No",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					// Continue with system action
-					base.OnBackPressed();
-				} );
-
-				confirmationDialogue.SetNeutralButton( "Return to task details",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					// Consume the event
-				} );
-
-				confirmationDialogue.Show(); 
+				new AlertDialog.Builder( this )
+					.SetMessage( "Changes have been made to this task. Do you want to save these changes?" )
+					.SetPositiveButton( "Yes", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						Save();
+					} )
+					.SetNegativeButton( "No", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						// Continue with system action
+						base.OnBackPressed();
+					} )
+					.SetNeutralButton( "Return to task details", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						// Consume the event
+					} )
+					.Show(); 
 			}
 			else
 			{
@@ -119,6 +115,22 @@ namespace AutoNag
 			if ( taskID > 0 ) 
 			{
 				task = TaskManager.GetTask( taskID );
+
+				// Check whether or not this is being called from a notification
+				if ( Intent.GetIntExtra( "Notification", 0 ) == 1 )
+				{
+					if ( task.NotificationRequired == true )
+					{
+						task.NotificationRequired = false;
+						task.DueDate = new DateTime( task.DueDate.Year, task.DueDate.Month, task.DueDate.Day, 0, 0, 0 );
+
+						TaskManager.SaveTask( task );
+						NotifyChanges();
+					}
+
+					// Remove the notification
+					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( taskID );
+				}
 			}
 			
 			// Set the layout to be the TaskDetails screen
@@ -234,11 +246,7 @@ namespace AutoNag
 
 		private void ChangeDate()
 		{
-			AlertDialog.Builder createdDialogue = new AlertDialog.Builder( this );
-			createdDialogue.SetTitle( "Due date" );
-
 			View calendarLayout = LayoutInflater.Inflate( Resource.Layout.CalendarView, null );
-			createdDialogue.SetView( calendarLayout );
 
 			CalendarView calView = calendarLayout.FindViewById< CalendarView >( Resource.Id.calendarView );
 			if ( displayedDueDate == DateTime.MinValue )
@@ -250,26 +258,37 @@ namespace AutoNag
 				calView.Date = ( long )( displayedDueDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
 			}
 
-			createdDialogue.SetPositiveButton( "Set",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-			{
-				displayedDueDate = new DateTime( calView.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks );
-				DisplayDueDate();
-				UpdateSaveState();
-			} );
+			new AlertDialog.Builder( this )
+				.SetTitle( "Due date" )
+				.SetView( calendarLayout )
+				.SetPositiveButton( "Set",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				{
+					// If notification was on the previous date then retain the notification hours and minutes
+					int hours = displayedDueDate.Hour;
+					int mins = displayedDueDate.Minute;
 
-			createdDialogue.SetNegativeButton( "Cancel",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-			{
-				// No action
-			} );
+					displayedDueDate = new DateTime( calView.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks );
+					displayedDueDate += new TimeSpan( hours, mins, 0 );
+					
+					DisplayDueDate();
+					UpdateSaveState();
+				} )
+				.SetNegativeButton( "Cancel",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				{
+					// No action
+				} )
+				.SetNeutralButton( "Clear",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				{
+					displayedDueDate = DateTime.MinValue;
 
-			createdDialogue.SetNeutralButton( "Clear",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-			{
-				displayedDueDate = DateTime.MinValue;
-				DisplayDueDate();
-				UpdateSaveState();
-			} );
+					// Clear the notification
+					displayedNotification = false;
 
-			createdDialogue.Show(); 
+					DisplayDueDate();
+					ShowNotificationImage();
+					UpdateSaveState();
+				} )
+				.Show(); 
 		}
 
 		private void ChangePriority()
@@ -282,10 +301,58 @@ namespace AutoNag
 
 		private void ChangeNotification()
 		{
-			displayedNotification = !displayedNotification;
+			// Don't show the dialogue it the due date is not set
+			if ( displayedDueDate != DateTime.MinValue )
+			{
+				View notificationLayout = LayoutInflater.Inflate( Resource.Layout.NotificationSelection, null );
 
-			ShowNotificationImage();
-			UpdateSaveState();
+				TimePicker notificationTimePicker = notificationLayout.FindViewById< TimePicker >( Resource.Id.NotificationTimePicker );
+				notificationTimePicker.SetIs24HourView( Java.Lang.Boolean.True );
+
+				// If the DueDate contains any non-zero hours and minutes fields then initialise the picker to those values, otherwise
+				// it will show the current time
+				if ( ( displayedDueDate.Hour != 0 ) || ( displayedDueDate.Minute != 0 ) )
+				{
+					notificationTimePicker.CurrentHour = ( Java.Lang.Integer )displayedDueDate.Hour;
+					notificationTimePicker.CurrentMinute = ( Java.Lang.Integer )displayedDueDate.Minute;
+				}
+				else
+				{
+					// Make sure that the hour is in the correct format
+					notificationTimePicker.CurrentHour = ( Java.Lang.Integer )DateTime.Now.Hour;
+				}
+
+				new AlertDialog.Builder( this )
+					.SetTitle( "Notification time" )
+					.SetView( notificationLayout )
+					.SetPositiveButton( "Set",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						notificationTimePicker.ClearFocus();
+
+						// Save the selected hours and minutes in the DueDate field
+						displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, ( int )notificationTimePicker.CurrentHour,
+							( int )notificationTimePicker.CurrentMinute, 0 );
+
+						displayedNotification = ( ( displayedDueDate.Hour != 0 ) || ( displayedDueDate.Minute != 0 ) );
+
+						ShowNotificationImage();
+						UpdateSaveState();
+					} )
+					.SetNegativeButton( "Cancel",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						// No action
+					} )
+					.SetNeutralButton( "Clear",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					{
+						displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, 0, 0, 0 );
+
+						displayedNotification = false;
+
+						ShowNotificationImage();
+						UpdateSaveState();
+					} )
+					.Show(); 
+			}
 		}
 
 		private void ShowPriorityImage()
@@ -326,6 +393,24 @@ namespace AutoNag
 
 		private void Save()
 		{
+			// Check for any notification changes that require alarm updates
+			if ( displayedNotification != task.NotificationRequired )
+			{
+				// If the notification has been turned off then cancel the alarm. If it has been turned on then raise the alarm
+				if ( displayedNotification == false )
+				{
+					AlarmInterface.CancelAlarm( task.ID, ApplicationContext );
+				}
+				else
+				{
+					AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
+				}
+			}
+			else if ( ( task.DueDate != displayedDueDate ) && ( displayedNotification == true ) )
+			{
+				AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
+			}
+
 			// Update the task with the displayed values
 			task.Name = nameTextEdit.Text;
 			task.Notes = notesTextEdit.Text;
@@ -343,23 +428,20 @@ namespace AutoNag
 		private void Delete()
 		{
 			// Confirm deletion with the user
-			AlertDialog.Builder confirmationDialogue = new AlertDialog.Builder( this );
-			confirmationDialogue.SetMessage( "Do you really want to delete this task?" );
+			new AlertDialog.Builder( this )
+				.SetMessage( "Do you really want to delete this task?" )
+				.SetPositiveButton( "Yes", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				{
+					TaskManager.DeleteTask( task.ID );
+					NotifyChanges();
 
-			confirmationDialogue.SetPositiveButton( "Yes",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-			{
-				TaskManager.DeleteTask(task.ID);
-				NotifyChanges();
-
-				Finish();
-			} );
-
-			confirmationDialogue.SetNegativeButton( "No",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-			{
-				// No action
-			} );
-
-			confirmationDialogue.Show(); 
+					Finish();
+				} )
+				.SetNegativeButton( "No", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				{
+					// No action
+				} )
+				.Show(); 
 		}
 
 		private void NotifyChanges()

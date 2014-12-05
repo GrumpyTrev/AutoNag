@@ -96,22 +96,25 @@ namespace AutoNag
 			{
 				view.SetViewVisibility( Resource.Id.taskDueLabel, ViewStates.Invisible );
 				view.SetViewVisibility( Resource.Id.taskDue, ViewStates.Invisible );
-				view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Invisible );
+				view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Gone );
+				view.SetViewVisibility( Resource.Id.taskNotificationTime, ViewStates.Gone );
 			}
 			else
 			{
 				view.SetViewVisibility( Resource.Id.taskDueLabel, ViewStates.Visible );
-
 				view.SetViewVisibility( Resource.Id.taskDue, ViewStates.Visible );
 				view.SetTextViewText( Resource.Id.taskDue, tasks[ position ].DueDate.ToString( @"dd/MM/yyyy" ) );
 
 				if ( tasks[ position ].NotificationRequired == false )
 				{
-					view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Invisible );
+					view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Gone );
+					view.SetViewVisibility( Resource.Id.taskNotificationTime, ViewStates.Gone );
 				}
 				else
 				{
 					view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Visible );
+					view.SetViewVisibility( Resource.Id.taskNotificationTime, ViewStates.Visible );
+					view.SetTextViewText( Resource.Id.taskNotificationTime, tasks[ position ].DueDate.ToString( @"HH:mm" ) );
 				}
 			}
 

@@ -58,20 +58,25 @@ namespace AutoNag
 			toTask.NotificationRequired = Convert.ToBoolean( reader ["NotificationRequired"] );
 			toTask.Priority	= Convert.ToInt32( reader[ "Priority" ] );
 
-			try
-			{
-				toTask.DueDate = DateTime.ParseExact( reader[ "DueDate" ].ToString(), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture );
+			DateTime dueTime;
 
+			if ( ( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), "yyyyMMddHHmm", System.Globalization.CultureInfo.InvariantCulture, 
+				System.Globalization.DateTimeStyles.None, out dueTime ) == false ) &&
+				( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture, 
+					System.Globalization.DateTimeStyles.None, out dueTime ) == false ) )
+			{
+				dueTime = DateTime.MinValue;
+			}
+			else
+			{
 				// If the day part of the time is the same as that in DateTime.MaxValue then set it to DateTime.MinValue
-				if ( toTask.DueDate.Date == DateTime.MaxValue.Date )
+				if ( dueTime.Date == DateTime.MaxValue.Date )
 				{
-					toTask.DueDate = DateTime.MinValue;
+					dueTime = DateTime.MinValue;
 				}
 			}
-			catch ( Exception )
-			{
-				toTask.DueDate = DateTime.MinValue;
-			}
+
+			toTask.DueDate = dueTime;
 
 			try
 			{
@@ -102,8 +107,6 @@ namespace AutoNag
 				{
 					command.CommandText = command.CommandText + " ORDER BY " + orderClause;
 				}
-
-				Log.Debug( "TaskDatabase", string.Format( "Selection string {0}", command.CommandText ) );
 
 				SqliteDataReader reader = command.ExecuteReader();
 				while ( reader.Read() == true )
@@ -167,11 +170,11 @@ namespace AutoNag
 				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
 				if ( item.DueDate == DateTime.MinValue )
 				{
-					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = DateTime.MaxValue.ToString( "yyyyMMdd" ) } );
+					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = DateTime.MaxValue.ToString( "yyyyMMddHHmm" ) } );
 				}
 				else
 				{
-					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.DueDate.ToString( "yyyyMMdd" ) } );
+					command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.DueDate.ToString( "yyyyMMddHHmm" ) } );
 				}
 
 				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.ModifiedDate.ToString( "yyyyMMddHHmmss" ) } );
