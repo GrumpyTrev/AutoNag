@@ -64,9 +64,9 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The tasks stored in a IList<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public static IList<Task> GetTasks( List< Task.SortOrders > sortOrder )
+		public static IList< Task > GetTasks( IList< Task.SortOrders > sortOrder )
 		{
-			return new List<Task>( TaskRepository.GetTasks( sortOrder ) );
+			return TaskRepository.GetTasks( sortOrder );
 		}
 
 		/// <summary>

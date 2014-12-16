@@ -1,3 +1,41 @@
+// 
+// File Details 
+// -------------- 
+//
+// Project:     AutoNag
+// Task:        User Interface
+// Filename:    TaskDetailsScreen.cs
+// Created by:  T. Simmonds
+//
+//
+// File Description
+// ------------------
+//
+// Purpose:      The TaskDetailsScreen activity allows the user to display and edit a task
+//				 
+// Description:  As purpose
+//
+//
+//
+// File History
+// ------------
+//
+// %version:  1 %
+//
+// (c) Copyright 2014 Trevor Simmonds.
+// This software is protected by copyright, the design of any 
+// article recorded in the software is protected by design 
+// right and the information contained in the software is 
+// confidential. This software may not be copied, any design 
+// may not be reproduced and the information contained in the 
+// software may not be used or disclosed except with the
+// prior written permission of and in a manner permitted by
+// the proprietors Trevor Simmonds (c) 2014
+//
+//    Copyright Holders:
+//       Trevor Simmonds,
+//       t.simmonds@virgin.net
+//
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -12,11 +50,20 @@ using System;
 namespace AutoNag
 {
 	/// <summary>
-	/// View/edit a Task
+	/// The TaskDetailsScreen activity allows the user to display and edit a task
 	/// </summary>
 	[Activity (Label = "Task Details", WindowSoftInputMode = SoftInput.AdjustResize )]			
-	public class TaskDetailsScreen : Activity 
+	public class TaskDetailsScreen : Activity, NotificationTimeDialogue.NotificationTimeDialogueListener, DueDateDialogue.DueDateDialogueListener
 	{
+		//
+		// Public methods
+		//
+
+		/// <summary>
+		/// Initialize the contents of the Activity's standard options menu.
+		/// </summary>
+		/// <param name="menu">The options menu in which you place your items.</param>
+		/// <returns>Base class result</returns>
 		public override bool OnCreateOptionsMenu( IMenu menu ) 
 		{
 			// Inflate the menu items for use in the action bar
@@ -39,33 +86,29 @@ namespace AutoNag
 			return base.OnCreateOptionsMenu( menu );
 		}
 
+		/// <summary>
+		/// This hook is called whenever an item in your options menu is selected.
+		/// </summary>
+		/// <param name="item">The menu item that was selected.</param>
+		/// <returns>True</returns>
 		public override bool OnOptionsItemSelected( IMenuItem item )
 		{
 			base.OnOptionsItemSelected( item );
 
-			switch ( item.ItemId )
+			if ( item.ItemId == Resource.Id.saveTask )
 			{
-				case Resource.Id.saveTask:
-				{
-					Save();
-					break;
-				}
-
-				case Resource.Id.deleteTask:
-				{
-					Delete();
-					break;
-				}
-
-				default: break;
+				Save();
+			}
+			else if ( item.ItemId == Resource.Id.deleteTask )
+			{
+				Delete();
 			}
 
 			return true;
 		}
 
 		/// <summary>
-		/// Called when the activity has detected the user's press of the back
-		///  key.
+		/// Called when the activity has detected the user's press of the back key.
 		/// If the save icon is being displayed prompt the user whether or not the changes should be saved
 		/// </summary>
 		public override void OnBackPressed()
@@ -75,16 +118,16 @@ namespace AutoNag
 				// Check if user wishes to save the changes
 				new AlertDialog.Builder( this )
 					.SetMessage( "Changes have been made to this task. Do you want to save these changes?" )
-					.SetPositiveButton( "Yes", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
 					{
 						Save();
 					} )
-					.SetNegativeButton( "No", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					.SetNegativeButton( "No", ( buttonSender, buttonEvents ) =>
 					{
 						// Continue with system action
 						base.OnBackPressed();
 					} )
-					.SetNeutralButton( "Return to task details", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+					.SetNeutralButton( "Return to task details", ( buttonSender, buttonEvents ) =>
 					{
 						// Consume the event
 					} )
@@ -96,106 +139,116 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Called when the user has set a notification time
+		/// </summary>
+		/// <param name="hours">Hours.</param>
+		/// <param name="minutes">Minutes.</param>
+		public void OnNotificationSet( int hours, int minutes )
+		{
+			// Save the selected hours and minutes in the DueDate field
+			displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, hours, minutes, 0 );
+
+			// Set the notification flag and update its assocoiated image
+			displayedNotification = ( ( displayedDueDate.Hour != 0 ) || ( displayedDueDate.Minute != 0 ) );
+			ShowNotificationImage();
+
+			// Check if the save icon should be displayed
+			UpdateSaveState();
+		}
+
+		/// <summary>
+		/// Called when the user has cleared the notification time
+		/// </summary>
+		public void OnNotificationCleared()
+		{
+			// Remove the hours and minutes from the due date
+			displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, 0, 0, 0 );
+
+			// Clear the notification flag
+			displayedNotification = false;
+			ShowNotificationImage();
+
+			// Check if the save icon should be displayed
+			UpdateSaveState();
+		}
+
+		/// <summary>
+		/// Called when the user has set the due date
+		/// </summary>
+		/// <param name="dueDate">New due date.</param>
+		public void OnDueDateSet( DateTime dueDate )
+		{
+			// If a notification was on the previous date then retain the notification hours and minutes
+			displayedDueDate = dueDate + new TimeSpan( displayedDueDate.Hour, displayedDueDate.Minute, 0 );
+
+			DisplayDueDate();
+
+			// Check if the save icon should be displayed
+			UpdateSaveState();
+		}
+
+		/// <summary>
+		/// Called when the user has cleared the due date
+		/// </summary>
+		public void OnDueDateCleared()
+		{
+			displayedDueDate = DateTime.MinValue;
+
+			// Clear the notification
+			displayedNotification = false;
+
+			DisplayDueDate();
+			ShowNotificationImage();
+
+			// Check if the save icon should be displayed
+			UpdateSaveState();
+		}
+
 		//
 		// Protected methods
 		//
 
 		/// <summary>
 		/// Called when the activity is first created - before it is displayed
-		/// Initialise the visible componnet references
+		/// Initialise the visible component references
 		/// </summary>
 		/// <param name="bundle">Bundle.</param>
 		protected override void OnCreate( Bundle bundle )
 		{
 			base.OnCreate( bundle );
 
-			// Get the task identity from the intent and if it is non-zero get the task from the database
-			int taskID = Intent.GetIntExtra( "TaskID", 0 );
+			// Load the task associated with the intent
+			CarryOutIntentActions();
 
-			if ( taskID > 0 ) 
-			{
-				task = TaskManager.GetTask( taskID );
-
-				// Check whether or not this is being called from a notification
-				if ( Intent.GetIntExtra( "Notification", 0 ) == 1 )
-				{
-					if ( task.NotificationRequired == true )
-					{
-						task.NotificationRequired = false;
-						task.DueDate = new DateTime( task.DueDate.Year, task.DueDate.Month, task.DueDate.Day, 0, 0, 0 );
-
-						TaskManager.SaveTask( task );
-						NotifyChanges();
-					}
-
-					// Remove the notification
-					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( taskID );
-				}
-			}
-			
 			// Set the layout to be the TaskDetails screen
 			SetContentView( Resource.Layout.TaskDetails );
 
-			// Get references to the view components and use them to display the task's contents
+			// Get references to the view components
 			nameTextEdit = FindViewById< EditText >( Resource.Id.detailsName );
-			nameTextEdit.Text = task.Name; 
-
 			notesTextEdit = FindViewById< EditText >( Resource.Id.detailsNote );
-			notesTextEdit.Text = task.Notes;
-
 			taskDone = FindViewById< CheckBox >( Resource.Id.detailsDone );
-			taskDone.Checked = task.Done;
-
 			dueDateDisplay = FindViewById< TextView >( Resource.Id.detailsDueDate );
-			displayedDueDate = task.DueDate;
-			DisplayDueDate();
-
 			priorityLabel =  FindViewById< TextView >( Resource.Id.detailsPriorityLabel );
 			priorityImage = FindViewById< ImageView >( Resource.Id.detailsImagePriority );
-			displayedPriority = task.Priority;
-			ShowPriorityImage();
-
 			notificationImage = FindViewById< ImageView >( Resource.Id.detailsImageNotification );
-			displayedNotification = task.NotificationRequired;
+
+			// Load the state of the activity from provided bundle
+			LoadState( bundle );
+
+			// Display the state
+			DisplayDueDate();
+			ShowPriorityImage();
 			ShowNotificationImage();
 
 			// Set up handlers for user interaction
-			nameTextEdit.AfterTextChanged += ( object sender, Android.Text.AfterTextChangedEventArgs args) => 
-			{
-				UpdateSaveState();
-			};
-
-			notesTextEdit.AfterTextChanged += ( object sender, Android.Text.AfterTextChangedEventArgs args) => 
-			{
-				UpdateSaveState();
-			};
-
-			dueDateDisplay.Click += ( object sender, EventArgs args ) => 
-			{ 
-				ChangeDate();
-			};
-
-			taskDone.CheckedChange += ( object sender, CompoundButton.CheckedChangeEventArgs args ) => 
-			{
-				UpdateSaveState();
-			};
-
-			priorityLabel.Click += ( object sender, EventArgs args ) => 
-			{ 
-				ChangePriority(); 
-			};
-
-			// Click events required for both priority images
-			priorityImage.Click += ( object sender, EventArgs args ) => 
-			{ 
-				ChangePriority(); 
-			};
-
-			// Click events required for both notification images
-			notificationImage.Click += ( object sender, EventArgs args ) => 
-			{ 
-				ChangeNotification(); 
-			};
+			nameTextEdit.AfterTextChanged += ( sender, args) => { UpdateSaveState(); };
+			notesTextEdit.AfterTextChanged += ( sender, args) => { UpdateSaveState(); };
+			dueDateDisplay.Click += ( sender, args ) => { ChangeDate(); };
+			taskDone.CheckedChange += ( sender, args ) => { UpdateSaveState(); };
+			priorityLabel.Click += ( sender, args ) => { ChangePriority(); };
+			priorityImage.Click += ( sender, args ) => { ChangePriority(); };
+			notificationImage.Click += ( sender, args ) => { ChangeNotification(); };
 		}
 
 		/// <summary>
@@ -221,10 +274,84 @@ namespace AutoNag
 			}	
 		}
 
+		/// <summary>
+		/// Raises the save instance state event.
+		/// The activity will automatically save the content of the views, so just save any state items that are not help in View objects 
+		/// </summary>
+		/// <param name="outState">Bundle in which to place your saved state.</param>
+		protected override void OnSaveInstanceState( Bundle outState )
+		{
+			base.OnSaveInstanceState( outState );
+
+			outState.PutString( DueDateName, displayedDueDate.ToString( DueDateFormat ) );
+			outState.PutInt( PriorityName, displayedPriority );
+			outState.PutBoolean( NotificationName, displayedNotification );
+		}
+
 		//
 		// Private methods
 		//
 
+		/// <summary>
+		/// The supplied Intent contains the identity of the tasl to load and whether or not this activity has been started in response
+		/// to a notification
+		/// </summary>
+		private void CarryOutIntentActions()
+		{
+			// Get the task identity and if it is non-zero load it.
+			int taskID = Intent.GetIntExtra( "TaskID", 0 );
+
+			if ( taskID > 0 ) 
+			{
+				task = TaskManager.GetTask( taskID );
+
+				// If this activity has been started from a notification then clear the notification flag.
+				if ( Intent.GetIntExtra( "Notification", 0 ) == 1 )
+				{
+					// Make sure that a notification was due
+					if ( task.NotificationRequired == true )
+					{
+						task.NotificationRequired = false;
+						task.DueDate = new DateTime( task.DueDate.Year, task.DueDate.Month, task.DueDate.Day, 0, 0, 0 );
+
+						// Save these updated task fields before displaying anything to the user
+						TaskManager.SaveTask( task );
+
+						// Tell everyone about it
+						NotifyChanges();
+					}
+
+					// Remove the notification
+					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( taskID );
+				}
+			}
+		}
+
+		/// <summary>
+		/// Loads the state from the supplied bundle
+		/// </summary>
+		/// <param name="stateBundle">State bundle.</param>
+		private void LoadState( Bundle stateBundle )
+		{
+			// If the Bundle is null, i.e. this is the first time the activity has been displayed, then load state from the task 
+			if ( stateBundle == null )
+			{
+				notesTextEdit.Text = task.Notes;
+				nameTextEdit.Text = task.Name; 
+				taskDone.Checked = task.Done;
+				displayedDueDate = task.DueDate;
+				displayedPriority = task.Priority;
+				displayedNotification = task.NotificationRequired;
+			}
+			else
+			{
+				// Load the non-view state from the bundle
+				displayedDueDate = DateTime.ParseExact( stateBundle.GetString( DueDateName ), DueDateFormat, System.Globalization.CultureInfo.InvariantCulture );
+				displayedPriority = stateBundle.GetInt( PriorityName );
+				displayedNotification = stateBundle.GetBoolean( NotificationName );
+			}
+		}
+			
 		/// <summary>
 		/// Called whenever any changes are made to the task so that the save icon can be shown or hidden appropriately
 		/// </summary>
@@ -244,117 +371,46 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Called when the due date has been clicked.
+		/// Allow the user to set or clear the due date
+		/// </summary>
 		private void ChangeDate()
 		{
-			View calendarLayout = LayoutInflater.Inflate( Resource.Layout.CalendarView, null );
-
-			CalendarView calView = calendarLayout.FindViewById< CalendarView >( Resource.Id.calendarView );
-			if ( displayedDueDate == DateTime.MinValue )
-			{
-				calView.Date = ( long )( DateTime.Now - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
-			}
-			else
-			{
-				calView.Date = ( long )( displayedDueDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
-			}
-
-			new AlertDialog.Builder( this )
-				.SetTitle( "Due date" )
-				.SetView( calendarLayout )
-				.SetPositiveButton( "Set",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					// If notification was on the previous date then retain the notification hours and minutes
-					int hours = displayedDueDate.Hour;
-					int mins = displayedDueDate.Minute;
-
-					displayedDueDate = new DateTime( calView.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks );
-					displayedDueDate += new TimeSpan( hours, mins, 0 );
-					
-					DisplayDueDate();
-					UpdateSaveState();
-				} )
-				.SetNegativeButton( "Cancel",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					// No action
-				} )
-				.SetNeutralButton( "Clear",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-				{
-					displayedDueDate = DateTime.MinValue;
-
-					// Clear the notification
-					displayedNotification = false;
-
-					DisplayDueDate();
-					ShowNotificationImage();
-					UpdateSaveState();
-				} )
-				.Show(); 
+			DialogFragment dialogue = DueDateDialogue.CreateInstance( displayedDueDate );
+			dialogue.Show( FragmentManager.BeginTransaction(), "DueDateDialogue" );
 		}
 
+		/// <summary>
+		/// Called to toggle the priority of this task
+		/// </summary>
 		private void ChangePriority()
 		{
+			// Toggle the priority and display the associated image
 			displayedPriority = ( displayedPriority + 1 ) % 2;
-
 			ShowPriorityImage();
+
+			// Check if the save icon should be displayed
 			UpdateSaveState();
 		}
 
+		/// <summary>
+		/// Called when the notification image has been clicked.
+		/// Allow the user to set or clear the notification time
+		/// </summary>
 		private void ChangeNotification()
 		{
 			// Don't show the dialogue it the due date is not set
 			if ( displayedDueDate != DateTime.MinValue )
 			{
-				View notificationLayout = LayoutInflater.Inflate( Resource.Layout.NotificationSelection, null );
-
-				TimePicker notificationTimePicker = notificationLayout.FindViewById< TimePicker >( Resource.Id.NotificationTimePicker );
-				notificationTimePicker.SetIs24HourView( Java.Lang.Boolean.True );
-
-				// If the DueDate contains any non-zero hours and minutes fields then initialise the picker to those values, otherwise
-				// it will show the current time
-				if ( ( displayedDueDate.Hour != 0 ) || ( displayedDueDate.Minute != 0 ) )
-				{
-					notificationTimePicker.CurrentHour = ( Java.Lang.Integer )displayedDueDate.Hour;
-					notificationTimePicker.CurrentMinute = ( Java.Lang.Integer )displayedDueDate.Minute;
-				}
-				else
-				{
-					// Make sure that the hour is in the correct format
-					notificationTimePicker.CurrentHour = ( Java.Lang.Integer )DateTime.Now.Hour;
-				}
-
-				new AlertDialog.Builder( this )
-					.SetTitle( "Notification time" )
-					.SetView( notificationLayout )
-					.SetPositiveButton( "Set",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-					{
-						notificationTimePicker.ClearFocus();
-
-						// Save the selected hours and minutes in the DueDate field
-						displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, ( int )notificationTimePicker.CurrentHour,
-							( int )notificationTimePicker.CurrentMinute, 0 );
-
-						displayedNotification = ( ( displayedDueDate.Hour != 0 ) || ( displayedDueDate.Minute != 0 ) );
-
-						ShowNotificationImage();
-						UpdateSaveState();
-					} )
-					.SetNegativeButton( "Cancel",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-					{
-						// No action
-					} )
-					.SetNeutralButton( "Clear",  ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
-					{
-						displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, 0, 0, 0 );
-
-						displayedNotification = false;
-
-						ShowNotificationImage();
-						UpdateSaveState();
-					} )
-					.Show(); 
+				DialogFragment dialogue = NotificationTimeDialogue.CreateInstance( displayedDueDate );
+				dialogue.Show( FragmentManager.BeginTransaction(), "NotificationTimeDialogue" );
 			}
 		}
 
+		/// <summary>
+		/// Shows the priority image.
+		/// </summary>
 		private void ShowPriorityImage()
 		{
 			if ( displayedPriority == 0 )
@@ -367,6 +423,9 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Shows the notification image.
+		/// </summary>
 		private void ShowNotificationImage()
 		{
 			if ( displayedNotification == false )
@@ -379,6 +438,9 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Displays the due date.
+		/// </summary>
 		private void DisplayDueDate()
 		{
 			if ( displayedDueDate == DateTime.MinValue )
@@ -391,6 +453,10 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Update the task with the state held by this activity and save it.
+		/// Check for any changes that may need notifying to the AlarmInterface
+		/// </summary>
 		private void Save()
 		{
 			// Check for any notification changes that require alarm updates
@@ -406,6 +472,7 @@ namespace AutoNag
 					AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
 				}
 			}
+			// If the due date has changed and a notification is required then raise the alarm
 			else if ( ( task.DueDate != displayedDueDate ) && ( displayedNotification == true ) )
 			{
 				AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
@@ -420,30 +487,45 @@ namespace AutoNag
 			task.DueDate = displayedDueDate;
 			task.ModifiedDate = DateTime.Now;
 
+			// Save the task
 			TaskManager.SaveTask(task);
+
+			// Tell everyone about it
 			NotifyChanges();
+
 			Finish();
 		}
 
+		/// <summary>
+		/// Called when the delete action bar option has been selected.
+		/// Confirm this with the user
+		/// </summary>
 		private void Delete()
 		{
 			// Confirm deletion with the user
 			new AlertDialog.Builder( this )
 				.SetMessage( "Do you really want to delete this task?" )
-				.SetPositiveButton( "Yes", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
 				{
+					// Delete the task
 					TaskManager.DeleteTask( task.ID );
+
+					// Tell everyone about it
 					NotifyChanges();
 
 					Finish();
 				} )
-				.SetNegativeButton( "No", ( object buttonSender, DialogClickEventArgs buttonEvents ) =>
+				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) =>
 				{
 					// No action
 				} )
 				.Show(); 
 		}
 
+		/// <summary>
+		/// Broadcasts and intent to notify interested receivers there has been a change.  
+		/// Note that the actual changed item it not indicatedf.
+		/// </summary>
 		private void NotifyChanges()
 		{
 			SendBroadcast( new Intent( AutoNagWidget.UpdatedAction ) );
@@ -453,7 +535,14 @@ namespace AutoNag
 		// Private data
 		//
 
+		/// <summary>
+		/// The task being shown/edited
+		/// </summary>
 		private Task task = new Task();
+
+		/// <summary>
+		/// The views holding the displayed state of the task
+		/// </summary>
 		private EditText notesTextEdit;
 		private EditText nameTextEdit;
 		private CheckBox taskDone;
@@ -481,5 +570,17 @@ namespace AutoNag
 		/// The save action bar item
 		/// </summary>
 		private IMenuItem saveItem = null;
+
+		/// <summary>
+		/// The due date format.
+		/// </summary>
+		private const string DueDateFormat = "yyyyMMddHHmm";
+
+		/// <summary>
+		/// The names of Bundled states.
+		/// </summary>
+		private const string DueDateName = "displayedDueDate";
+		private const string PriorityName = "displayedPriority";
+		private const string NotificationName = "displayedNotification";
 	}
 }

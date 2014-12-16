@@ -162,7 +162,7 @@ namespace AutoNag
 
 			// Show task count. This has to be obtained from the static count kept by the ListRemoteViewsFactory class
 			views.SetTextViewText( Resource.Id.headerText, string.Format( "{0} ({1})", widgetContext.GetString( Resource.String.widgetName ), 
-				ListRemoteViewsFactory.GetCount( widgetId ) ) );
+				TaskCountPersistence.GetTaskCount( widgetContext, widgetId ) ) );
 
 			return views;
 		}

@@ -2,56 +2,66 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="horizontal">
     <CalendarView
         android:id="@+id/calendarView"
-        android:layout_width="match_parent"
+        android:layout_width="300dip"
         android:layout_gravity="center_horizontal"
         android:layout_height="300dip"
         android:showWeekNumber="false" />
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
         android:divider="?android:attr/dividerHorizontal"
         android:showDividers="beginning"
         android:dividerPadding="0dip">
         <LinearLayout
             style="?android:attr/buttonBarStyle"
             android:background="@android:color/darker_gray"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:measureWithLargestChild="true"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp">
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp">
             <Button
                 android:text="Cancel"
-                android:layout_width="0dp"
-                android:layout_gravity="start"
+                android:layout_width="match_parent"
+                android:layout_gravity="top"
                 android:layout_weight="1"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:id="@+id/dueDateCancelButton"
                 style="?android:attr/buttonBarButtonStyle"
-                android:maxLines="2" />
+                android:maxLines="2"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp" />
             <Button
                 android:text="Clear"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:id="@+id/dueDateClearButton"
                 style="?android:attr/buttonBarButtonStyle"
-                android:maxLines="2" />
+                android:maxLines="2"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp" />
             <Button
                 android:text="Set"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="bottom"
                 android:layout_weight="1"
                 android:id="@+id/dueDateSetButton"
                 style="?android:attr/buttonBarButtonStyle"
-                android:maxLines="2" />
+                android:maxLines="2"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

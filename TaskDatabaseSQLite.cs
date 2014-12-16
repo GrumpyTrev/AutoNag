@@ -44,8 +44,6 @@ using Mono.Data.Sqlite;
 using System.IO;
 using System.Data;
 
-using Android.Util;
-
 namespace AutoNag
 {
 	/// <summary>
@@ -93,7 +91,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The tasks stored in a IEnumerable<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public IEnumerable<Task> GetItems( List< Task.SortOrders > sortOrder )
+		public IList< Task > GetItems( IList< Task.SortOrders > sortOrder )
 		{
 			List< Task > taskList = new List< Task >();
 
@@ -304,7 +302,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The sort order clause.</returns>
 		/// <param name="sortOrder">Sort order.</param>
-		private string GetSortOrderClause( List< Task.SortOrders > sortOrder )
+		private string GetSortOrderClause( IList< Task.SortOrders > sortOrder )
 		{
 			string orderClause = "";
 

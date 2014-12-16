@@ -3,13 +3,14 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-    <TimePicker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/notificationTimePicker"
-        android:layout_gravity="center_horizontal" />
+    <CalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="300dip"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="300dip"
+        android:showWeekNumber="false" />
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:divider="?android:attr/dividerHorizontal"
@@ -30,7 +31,7 @@
                 android:layout_gravity="start"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:id="@+id/notificationCancelButton"
+                android:id="@+id/dueDateCancelButton"
                 style="?android:attr/buttonBarButtonStyle"
                 android:maxLines="2" />
             <Button
@@ -39,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
-                android:id="@+id/notificationClearButton"
+                android:id="@+id/dueDateClearButton"
                 style="?android:attr/buttonBarButtonStyle"
                 android:maxLines="2" />
             <Button
@@ -48,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_weight="1"
-                android:id="@+id/notificationSetButton"
+                android:id="@+id/dueDateSetButton"
                 style="?android:attr/buttonBarButtonStyle"
                 android:maxLines="2" />
         </LinearLayout>

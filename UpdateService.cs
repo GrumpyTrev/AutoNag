@@ -138,18 +138,6 @@ namespace AutoNag
 			LoadTasks();
 		}
 
-		public static int GetCount( int widgetId )
-		{
-			int count = -1;
-
-			if ( taskCounts.ContainsKey( widgetId ) == true )
-			{
-				count = taskCounts[ widgetId ];
-			}
-
-			return count;
-		}
-
 		public bool HasStableIds
 		{
 			get
@@ -184,14 +172,9 @@ namespace AutoNag
 
 			tasks = TaskManager.GetTasks( sortOrder );
 
-			SetTaskCount( widgetIdentity, tasks.Count );
+			TaskCountPersistence.SetTaskCount( savedContext, widgetIdentity, tasks.Count );
 
 			savedContext.SendBroadcast( new Intent( AutoNagWidget.LoadedAction ) );
-		}
-
-		private static void SetTaskCount( int widgetId, int count )
-		{
-			taskCounts[ widgetId ] = count;
 		}
 
 		private readonly Context savedContext = null;
@@ -199,10 +182,5 @@ namespace AutoNag
 		private readonly int widgetIdentity = 0;
 
 		private IList<Task> tasks;
-
-		/// <summary>
-		/// Static record of the current task count associated with each widget
-		/// </summary>
-		private static Dictionary< int, int > taskCounts = new Dictionary<int, int>();
 	}
 }

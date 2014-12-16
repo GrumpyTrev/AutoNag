@@ -12,6 +12,7 @@ using Android.Views;
 using Android.Widget;
 using Android.Util;
 using Android.Media;
+using Android.Support.V4.App;
 
 namespace AutoNag
 {
@@ -33,7 +34,7 @@ namespace AutoNag
 			PendingIntent cancelIntent = PendingIntent.GetBroadcast( alarmContext, taskID, new Intent( alarmContext, typeof( NotificationCancelReceiver ) )
 				.PutExtra( "TaskID", taskID ), 0 ) ;
 
-			Notification.Builder notificationBuilder = new Notification.Builder( alarmContext )
+			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder( alarmContext )
 				.SetContentTitle( taskName )
 				.SetContentText( "Click to view" )
 				.SetSmallIcon( Resource.Drawable.icon )

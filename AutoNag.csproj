@@ -16,7 +16,8 @@
     <AndroidApplication>true</AndroidApplication>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v4.4</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ReleaseVersion>1.1</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -47,6 +48,7 @@
     <Reference Include="Mono.Data.Sqlite" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Mono.Android.Support.v4" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Resources\Resource.Designer.cs" />
@@ -65,6 +67,9 @@
     <Compile Include="NotificationCancelReceiver.cs" />
     <Compile Include="TaskRepository.cs" />
     <Compile Include="TaskDatabaseSQLite.cs" />
+    <Compile Include="NotificationTimeDialogue.cs" />
+    <Compile Include="DueDateDialogue.cs" />
+    <Compile Include="TaskCountPersistence.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -80,7 +85,6 @@
     <AndroidResource Include="Resources\layout\TaskDetails.axml" />
     <AndroidResource Include="Resources\menu\DetailsScreenMenu.xml" />
     <AndroidResource Include="Resources\drawable\textBorder.xml" />
-    <AndroidResource Include="Resources\layout\CalendarView.xml" />
     <AndroidResource Include="Resources\drawable\widgetBackground.xml" />
     <AndroidResource Include="Resources\xml\WidgetProvider.xml" />
     <AndroidResource Include="Resources\layout\WidgetLayout.xml" />
@@ -110,6 +114,8 @@
     <AndroidResource Include="Resources\drawable\icon.png" />
     <AndroidResource Include="Resources\values\Styles.xml" />
     <AndroidResource Include="Resources\layout\NotificationSelection.xml" />
+    <AndroidResource Include="Resources\layout\DueDateSelection.xml" />
+    <AndroidResource Include="Resources\layout-land\DueDateSelection.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -126,5 +132,6 @@
     <Folder Include="Resources\drawable-xhdpi\" />
     <Folder Include="Resources\drawable-xxhdpi\" />
     <Folder Include="Resources\raw\" />
+    <Folder Include="Resources\layout-land\" />
   </ItemGroup>
 </Project>
