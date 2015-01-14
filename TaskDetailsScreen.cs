@@ -459,23 +459,27 @@ namespace AutoNag
 		/// </summary>
 		private void Save()
 		{
-			// Check for any notification changes that require alarm updates
+			// Check for any notification changes that require alarm updates.
+			// Do this before updating the task otherwise the changes will be lost
+			bool setAlarm = false;
+			bool cancelAlarm = false;
+
 			if ( displayedNotification != task.NotificationRequired )
 			{
 				// If the notification has been turned off then cancel the alarm. If it has been turned on then raise the alarm
 				if ( displayedNotification == false )
 				{
-					AlarmInterface.CancelAlarm( task.ID, ApplicationContext );
+					cancelAlarm = true;
 				}
 				else
 				{
-					AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
+					setAlarm = true;
 				}
 			}
 			// If the due date has changed and a notification is required then raise the alarm
 			else if ( ( task.DueDate != displayedDueDate ) && ( displayedNotification == true ) )
 			{
-				AlarmInterface.SetAlarm( task.ID, task.Name, displayedDueDate, ApplicationContext );
+				setAlarm = true;
 			}
 
 			// Update the task with the displayed values
@@ -492,6 +496,21 @@ namespace AutoNag
 
 			// Tell everyone about it
 			NotifyChanges();
+
+			// If this is a new task then the taskId needs to be extracted (otherwise any raised alarms will have the wrong task id
+			if ( task.ID == 0 )
+			{
+				task.ID = TaskManager.GetLastTask().ID;
+			}
+
+			if ( cancelAlarm == true )
+			{
+				AlarmInterface.CancelAlarm( task.ID, ApplicationContext );
+			}
+			else if ( setAlarm == true )
+			{
+				AlarmInterface.SetAlarm( task.ID, task.Name, task.DueDate, ApplicationContext );
+			}
 
 			Finish();
 		}

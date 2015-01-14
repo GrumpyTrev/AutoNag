@@ -9,14 +9,12 @@ Each note consists of a Task Name and a Note field. The Note field can be of any
 The note can be given a Priority, a Due Date, a Notification Time, and can be marked as Done. <br>
 The display of notes on the Widget can be sorted by any combination of Done, Priority and Due Date.<br>
  
-<h3>Version 1.1 - New features and bug fixes</h3>
+<h3>Version 1.2 - New features and bug fixes</h3>
 
-1) The Notification feature now works. Once a Due Date has been set, clicking on the Notification icon allows a Notification
-   Time to be set. When the Notification Time is reached on the Due Date a notification is displayed (together with an audio alert).
-   Clicking on the notification displays the associated note.<br>
-2) Rotating the phone when a note is displayed no longer loses any unsaved changes.<br>
+1) Fixed - Notifications set at the same time as note creation do not contain the correct task identity.  The resulting notifcation does not contain the
+   correct details. 
 
-<h3>Version 1.1 - Known Problems and Missing Features</h3>
+<h3>Version 1.2 - Known Problems and Missing Features</h3>
 
 1) Only a single set of notes can be displayed.  It is intended for multiple sets of notes to be available for display on different Widgets.<br>
 2) The colour of the notes is fixed. A colour configuration option may be added at a later date.<br>

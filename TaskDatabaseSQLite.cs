@@ -101,7 +101,7 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] from [Items]";
+				command.CommandText = "SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items]";
 
 				// Get the order clause and add it to the query if it is defined
 				string orderClause = GetSortOrderClause( sortOrder );
@@ -142,8 +142,43 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] from [Items] WHERE [Identity] = ?";
+				command.CommandText = 
+					"SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items] WHERE [Identity] = ?";
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ){ Value = id } );
+
+				SqliteDataReader reader = command.ExecuteReader();
+				if ( reader.Read() == true )
+				{
+					item = FromReader( reader );
+				}
+
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close ();
+			}
+
+			return item;
+		}
+
+		/// <summary>
+		/// Gets the last task inserted in the table
+		/// </summary>
+		/// <returns>The task.</returns>
+		/// <param name="id">Identifier.</param>
+		public Task GetLastItem() 
+		{
+			Task item = new Task();
+
+			lock( locker )
+			{
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
+
+				SqliteCommand command = connection.CreateCommand();
+				command.CommandText = 
+					"SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items] " +
+					"WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [Items] )";
 
 				SqliteDataReader reader = command.ExecuteReader();
 				if ( reader.Read() == true )
@@ -194,12 +229,14 @@ namespace AutoNag
 				// Either update an existing row or add a new one
 				if ( item.ID != 0 )
 				{
-					command.CommandText = "UPDATE [Items] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?;";
+					command.CommandText = 
+						"UPDATE [Items] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?;";
 					command.Parameters.Add (new SqliteParameter (DbType.Int32) { Value = item.ID });
 				}
 				else
 				{
-					command.CommandText = "INSERT INTO [Items] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+					command.CommandText = 
+						"INSERT INTO [Items] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] ) VALUES (?, ?, ?, ?, ?, ?, ?)";
 				}
 				
 				retCode = command.ExecuteNonQuery();

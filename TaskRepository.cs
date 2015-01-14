@@ -62,6 +62,16 @@ namespace AutoNag
 		}
 
 		/// <summary>
+		/// Gets the last task inserted in the table
+		/// </summary>
+		/// <returns>The task.</returns>
+		/// <param name="id">Identifier.</param>
+		public static Task GetLastTask() 
+		{
+			return InstanceProperty.sqliteDatabase.GetLastItem();
+		}
+
+		/// <summary>
 		/// Gets all of the the tasks.
 		/// </summary>
 		/// <returns>The tasks stored in a IEnumerable<Task></returns>
