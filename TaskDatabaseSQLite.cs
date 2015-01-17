@@ -215,16 +215,8 @@ namespace AutoNag
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Done } );
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.NotificationRequired } );
 				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Priority } );
-
-				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
-				DateTime dueDateToStore = item.DueDate;
-				if ( item.DueDate == DateTime.MinValue )
-				{
-					dueDateToStore = DateTime.MaxValue;
-				}
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = dueDateToStore.ToString( DueDateFormat ) } );
-
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.ModifiedDate.ToString( ModifiedDateFormat ) } );
+				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.StringDueDate } );
+				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.StringModifiedDate } );
 
 				// Either update an existing row or add a new one
 				if ( item.ID != 0 )
@@ -298,38 +290,8 @@ namespace AutoNag
 			toTask.Done = Convert.ToBoolean( reader ["Done"] );
 			toTask.NotificationRequired = Convert.ToBoolean( reader ["NotificationRequired"] );
 			toTask.Priority	= Convert.ToInt32( reader[ "Priority" ] );
-
-			// Allow the DueTime to be in either yyyyMMddHHmm or for compatibility yyyyMMdd
-			DateTime dueDateReadIn;
-
-			if ( ( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), DueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-				System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) &&
-				( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), CompatibleDueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-					System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) )
-			{
-				dueDateReadIn = DateTime.MinValue;
-			}
-			else
-			{
-				// In the database an undefined DueDate is set to the MaxValue, but in the rest of the system this is defined as MinValue so change it here
-				if ( dueDateReadIn.Date == DateTime.MaxValue.Date )
-				{
-					dueDateReadIn = DateTime.MinValue;
-				}
-			}
-
-			toTask.DueDate = dueDateReadIn;
-
-			// The format of the ModifiedDate is fixed
-			DateTime modifiedDateReadIn;
-
-			if ( DateTime.TryParseExact( reader[ "ModifiedDate" ].ToString(), ModifiedDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-				System.Globalization.DateTimeStyles.None, out modifiedDateReadIn ) == false )
-			{
-				modifiedDateReadIn = DateTime.MinValue;
-			}
-
-			toTask.ModifiedDate = modifiedDateReadIn;
+			toTask.StringDueDate = reader[ "DueDate" ].ToString();
+			toTask.StringModifiedDate = reader[ "ModifiedDate" ].ToString();
 
 			return toTask;
 		}
@@ -387,12 +349,5 @@ namespace AutoNag
 		/// The connection string.
 		/// </summary>
 		private string connectionString = "";
-
-		/// <summary>
-		/// Format strings for dates held in the database
-		/// </summary>
-		private const string DueDateFormat = "yyyyMMddHHmm";
-		private const string CompatibleDueDateFormat = "yyyyMMdd";
-		private const string ModifiedDateFormat = "yyyyMMddHHmmss";
 	}
 }
