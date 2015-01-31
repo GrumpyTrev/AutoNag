@@ -160,75 +160,6 @@ namespace AutoNag
 			set;
 		}
 
-		/// <summary>
-		/// Gets or sets the string version of the due date that reflects the value in the DueDate field.
-		/// </summary>
-		/// <value>The stored due date.</value>
-		public string StringDueDate
-		{
-			get
-			{
-				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
-				DateTime dueDateToStore = DueDate;
-				if ( dueDateToStore == DateTime.MinValue )
-				{
-					dueDateToStore = DateTime.MaxValue;
-				}
-
-				return dueDateToStore.ToString( DueDateFormat );
-			}
-
-			set
-			{
-				// Parse the string into a DateTime and store in the DueDate field
-				// Allow the DueTime to be in either yyyyMMddHHmm or for compatibility yyyyMMdd
-				DateTime dueDateReadIn;
-
-				if ( ( DateTime.TryParseExact( value, DueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-					System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) &&
-					( DateTime.TryParseExact( value, CompatibleDueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-						System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) )
-				{
-					dueDateReadIn = DateTime.MinValue;
-				}
-				else
-				{
-					// In the database an undefined DueDate is set to the MaxValue, but in the rest of the system this is defined as MinValue so change it here
-					if ( dueDateReadIn.Date == DateTime.MaxValue.Date )
-					{
-						dueDateReadIn = DateTime.MinValue;
-					}
-				}
-
-				DueDate = dueDateReadIn;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the string version of the due date that reflects the value in the ModifiedDate field.
-		/// </summary>
-		/// <value>The string modified date.</value>
-		public string StringModifiedDate
-		{
-			get
-			{
-				return ModifiedDate.ToString( ModifiedDateFormat );
-			}
-
-			set
-			{
-				DateTime modifiedDateReadIn;
-
-				if ( DateTime.TryParseExact( value, ModifiedDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-					System.Globalization.DateTimeStyles.None, out modifiedDateReadIn ) == false )
-				{
-					modifiedDateReadIn = DateTime.MinValue;
-				}
-
-				ModifiedDate = modifiedDateReadIn;
-			}
-		}
-
 		//
 		// Private data
 		//
@@ -242,12 +173,5 @@ namespace AutoNag
 		/// The task content. Explictly defined so that the get property always returns a non-null
 		/// </summary>
 		private string taskMemo = "";
-
-		/// <summary>
-		/// Format strings for the persisted dates
-		/// </summary>
-		private const string DueDateFormat = "yyyyMMddHHmm";
-		private const string CompatibleDueDateFormat = "yyyyMMdd";
-		private const string ModifiedDateFormat = "yyyyMMddHHmmss";
 	}
 }

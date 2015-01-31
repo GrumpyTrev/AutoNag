@@ -56,19 +56,9 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The task.</returns>
 		/// <param name="id">Identifier.</param>
-		public static Task GetTask( int id )
+		public static Task GetTask( string taskListName, int id )
 		{
-			return InstanceProperty.sqliteDatabase.GetItem( id );
-		}
-
-		/// <summary>
-		/// Gets the last task inserted in the table
-		/// </summary>
-		/// <returns>The task.</returns>
-		/// <param name="id">Identifier.</param>
-		public static Task GetLastTask() 
-		{
-			return InstanceProperty.sqliteDatabase.GetLastItem();
+			return InstanceProperty.sqliteDatabase.GetItem( taskListName, id );
 		}
 
 		/// <summary>
@@ -76,9 +66,18 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The tasks stored in a IEnumerable<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public static IList< Task > GetTasks( IList< Task.SortOrders > sortOrder )
+		public static IList< Task > GetTasks( string taskListName, IList< Task.SortOrders > sortOrder )
 		{
-			return InstanceProperty.sqliteDatabase.GetItems( sortOrder );
+			return InstanceProperty.sqliteDatabase.GetItems( taskListName, sortOrder );
+		}
+
+		/// <summary>
+		/// Gets the names of the tables in the databases.
+		/// </summary>
+		/// <returns>The task tables.</returns>
+		public static IList< string > GetTaskTables()
+		{
+			return InstanceProperty.sqliteDatabase.GetTaskTables();
 		}
 
 		/// <summary>
@@ -86,9 +85,9 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>Whether or not the item was saved</returns>
 		/// <param name="item">Item.</param>
-		public static bool SaveTask( Task item )
+		public static bool SaveTask( string taskListName, Task item )
 		{
-			return ( InstanceProperty.sqliteDatabase.SaveItem( item ) == SQLiteSingleItemUpdated );
+			return ( InstanceProperty.sqliteDatabase.SaveItem( taskListName, item ) == SQLiteSingleItemUpdated );
 		}
 
 		/// <summary>
@@ -96,9 +95,19 @@ namespace AutoNag
 		/// </summary>
 		/// <returns><c>true</c>, if task was deleted, <c>false</c> otherwise.</returns>
 		/// <param name="id">Identifier.</param>
-		public static bool DeleteTask( int id )
+		public static bool DeleteTask( string taskListName, int id )
 		{
-			return ( InstanceProperty.sqliteDatabase.DeleteItem( id ) == SQLiteSingleItemUpdated );
+			return ( InstanceProperty.sqliteDatabase.DeleteItem( taskListName, id ) == SQLiteSingleItemUpdated );
+		}
+
+		/// <summary>
+		/// Create a table to contain a collection of tasks
+		/// </summary>
+		/// <returns><c>true</c>, if list was created, <c>false</c> otherwise.</returns>
+		/// <param name="listName">List name.</param>
+		public static bool CreateTaskList( string listName )
+		{
+			return ( InstanceProperty.sqliteDatabase.CreateList( listName ) == SQLiteSingleItemUpdated );
 		}
 
 		//

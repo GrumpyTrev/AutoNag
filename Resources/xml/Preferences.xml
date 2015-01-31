@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+	android:key="@string/settingsKey"
+	android:persistent="false" >
+    <Preference
+        android:title="@string/helpSettingsTitle"
+        android:summary="@string/helpSettingsSummary">
+        <intent
+        	android:targetPackage="AutoNag.AutoNag"
+            android:targetClass="autonag.HelpDialogueActivity" />
+    </Preference>
+    <ListPreference
+    	android:key="@string/listSettingsKey"
+        android:title="@string/listSettingsTitle"
+        android:summary="@string/listSettingsSummary">
+	</ListPreference>
+</PreferenceScreen>

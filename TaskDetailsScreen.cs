@@ -118,19 +118,9 @@ namespace AutoNag
 				// Check if user wishes to save the changes
 				new AlertDialog.Builder( this )
 					.SetMessage( "Changes have been made to this task. Do you want to save these changes?" )
-					.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
-					{
-						Save();
-					} )
-					.SetNegativeButton( "No", ( buttonSender, buttonEvents ) =>
-					{
-						// Continue with system action
-						base.OnBackPressed();
-					} )
-					.SetNeutralButton( "Return to task details", ( buttonSender, buttonEvents ) =>
-					{
-						// Consume the event
-					} )
+					.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) => { Save(); } )
+					.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => { base.OnBackPressed(); } )
+					.SetNeutralButton( "Return to task details", ( buttonSender, buttonEvents ) => {} )
 					.Show(); 
 			}
 			else
@@ -293,20 +283,23 @@ namespace AutoNag
 		//
 
 		/// <summary>
-		/// The supplied Intent contains the identity of the tasl to load and whether or not this activity has been started in response
+		/// The supplied Intent contains the identity of the task to load and whether or not this activity has been started in response
 		/// to a notification
 		/// </summary>
 		private void CarryOutIntentActions()
 		{
-			// Get the task identity and if it is non-zero load it.
-			int taskID = Intent.GetIntExtra( "TaskID", 0 );
+			WidgetIntent wrappedIntent = new WidgetIntent( Intent );
 
+			taskListName = wrappedIntent.TaskListNameProperty;
+
+			// Get the task identity and if it is non-zero load it.
+			int taskID = wrappedIntent.TaskIdentityProperty;
 			if ( taskID > 0 ) 
 			{
-				task = TaskManager.GetTask( taskID );
+				task = TaskRepository.GetTask( taskListName, taskID );
 
 				// If this activity has been started from a notification then clear the notification flag.
-				if ( Intent.GetIntExtra( "Notification", 0 ) == 1 )
+				if ( wrappedIntent.NotificationProperty == true )
 				{
 					// Make sure that a notification was due
 					if ( task.NotificationRequired == true )
@@ -315,7 +308,7 @@ namespace AutoNag
 						task.DueDate = new DateTime( task.DueDate.Year, task.DueDate.Month, task.DueDate.Day, 0, 0, 0 );
 
 						// Save these updated task fields before displaying anything to the user
-						TaskManager.SaveTask( task );
+						TaskRepository.SaveTask( taskListName, task );
 
 						// Tell everyone about it
 						NotifyChanges();
@@ -325,6 +318,7 @@ namespace AutoNag
 					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( taskID );
 				}
 			}
+
 		}
 
 		/// <summary>
@@ -449,7 +443,7 @@ namespace AutoNag
 			}
 			else
 			{
-				dueDateDisplay.Text = displayedDueDate.ToString( @"dd/MM/yyyy" );
+				dueDateDisplay.Text = displayedDueDate.ToString( DisplayDueDateFormat );
 			}
 		}
 
@@ -492,24 +486,18 @@ namespace AutoNag
 			task.ModifiedDate = DateTime.Now;
 
 			// Save the task
-			TaskManager.SaveTask(task);
+			TaskRepository.SaveTask( taskListName, task );
 
 			// Tell everyone about it
 			NotifyChanges();
 
-			// If this is a new task then the taskId needs to be extracted (otherwise any raised alarms will have the wrong task id
-			if ( task.ID == 0 )
-			{
-				task.ID = TaskManager.GetLastTask().ID;
-			}
-
 			if ( cancelAlarm == true )
 			{
-				AlarmInterface.CancelAlarm( task.ID, ApplicationContext );
+				AlarmInterface.CancelAlarm( taskListName, task.ID, ApplicationContext );
 			}
 			else if ( setAlarm == true )
 			{
-				AlarmInterface.SetAlarm( task.ID, task.Name, task.DueDate, ApplicationContext );
+				AlarmInterface.SetAlarm( taskListName, task.ID, task.Name, task.DueDate, ApplicationContext );
 			}
 
 			Finish();
@@ -527,27 +515,24 @@ namespace AutoNag
 				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
 				{
 					// Delete the task
-					TaskManager.DeleteTask( task.ID );
+					TaskRepository.DeleteTask( taskListName, task.ID );
 
 					// Tell everyone about it
 					NotifyChanges();
 
 					Finish();
 				} )
-				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) =>
-				{
-					// No action
-				} )
+				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => {} )
 				.Show(); 
 		}
 
 		/// <summary>
 		/// Broadcasts and intent to notify interested receivers there has been a change.  
-		/// Note that the actual changed item it not indicatedf.
+		/// Note that the actual changed item it not indicated.
 		/// </summary>
 		private void NotifyChanges()
 		{
-			SendBroadcast( new Intent( AutoNagWidget.UpdatedAction ) );
+			SendBroadcast( new WidgetIntent( AutoNagWidget.UpdatedAction ).SetTaskListName( taskListName ) );
 		}
 
 		//
@@ -558,6 +543,11 @@ namespace AutoNag
 		/// The task being shown/edited
 		/// </summary>
 		private Task task = new Task();
+
+		/// <summary>
+		/// The name of the task list.
+		/// </summary>
+		private string taskListName = "";
 
 		/// <summary>
 		/// The views holding the displayed state of the task
@@ -591,9 +581,14 @@ namespace AutoNag
 		private IMenuItem saveItem = null;
 
 		/// <summary>
-		/// The due date format.
+		/// The due date format in the bundle
 		/// </summary>
 		private const string DueDateFormat = "yyyyMMddHHmm";
+
+		/// <summary>
+		/// The display due date format.
+		/// </summary>
+		private const string DisplayDueDateFormat = @"dd/MM/yyyy";
 
 		/// <summary>
 		/// The names of Bundled states.

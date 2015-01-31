@@ -1,33 +1,53 @@
-﻿/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+﻿//
+// Project:     AutoNag
+// Task:        User Interface
+// Filename:    AutoNagWidget.cs
+// Created by:  T. Simmonds
+//
+//
+// File Description
+// ------------------
+//
+// Purpose:      The AutoNagWidget class controls the display of tasks within an AppWidget on the home screen.
+//				 
+// Description:  As purpose
+//
+//
+//
+// File History
+// ------------
+//
+// %version:  1 %
+//
+// (c) Copyright 2015 Trevor Simmonds.
+// This software is protected by copyright, the design of any 
+// article recorded in the software is protected by design 
+// right and the information contained in the software is 
+// confidential. This software may not be copied, any design 
+// may not be reproduced and the information contained in the 
+// software may not be used or disclosed except with the
+// prior written permission of and in a manner permitted by
+// the proprietors Trevor Simmonds (c) 2015
+//
+//    Copyright Holders:
+//       Trevor Simmonds,
+//       t.simmonds@virgin.net
+//
+using Android.Content;
 using Android.App;
 using Android.Appwidget;
-using Android.Content;
 using Android.Widget;
-
-using Android.Util;
-
 using System.Collections.Generic;
+
 
 namespace AutoNag
 {
 	[BroadcastReceiver (Label = "@string/widgetName")]
-	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, HelpAction })]
+	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction })]
 	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" )]
+	/// <summary>
+	/// The AutoNagWidget class controls the display of tasks within an AppWidget on the home screen.
+	/// </summary>
 	public class AutoNagWidget : AppWidgetProvider
 	{
 		/// <summary>
@@ -38,33 +58,48 @@ namespace AutoNag
 		/// <param name="intent">The Intent being received.</param>
 		public override void OnReceive( Context context, Intent intent ) 
 		{
+			// Get the identities of the widgets showing task lists
 			AppWidgetManager appManager = AppWidgetManager.GetInstance( context );
 			int[] appWidgetIds = appManager.GetAppWidgetIds( new ComponentName( context, Java.Lang.Class.FromType( typeof( AutoNagWidget ) ) ) );
 
+			// Wrap up the intent to retrieve data
+			WidgetIntent wrappedIntent = new WidgetIntent( intent );
+
 			if ( intent.Action == UpdatedAction )
 			{
-				// Tell all widgets that the data has changed.
-				// TODO - Target this to the widgets that are displaying the updated data
-				appManager.NotifyAppWidgetViewDataChanged( appWidgetIds, Resource.Id.listView );
+				// Determine the task list name associated with each widget.
+				// If it matches the updated list then notify the widget that its data has changed
+				string taskListName = wrappedIntent.TaskListNameProperty;
+				foreach ( int widgetId in appWidgetIds )
+				{
+					if ( ListNamePersistence.GetListName( context, widgetId ) == taskListName )
+					{
+						appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
+					}
+				}
 			}
 			else if ( intent.Action == LoadedAction )
 			{
-				// Render the contents of the widgets in order to display the initial task count.
-				// TODO - Target this to the specific widget that caused this load to occur
-				OnUpdate( context, appManager, appWidgetIds );
+				// Render the contents of the widget that triggered the load.
+				int[] triggeringWidget = new int[ 1 ];
+				triggeringWidget[ 0 ] = new WidgetIntent( intent ).WidgetIdProperty;
+
+				OnUpdate( context, appManager, triggeringWidget );
 			}
 			else if ( intent.Action == SortAction )
 			{
 				// Update the SortAction class associated with the specific widget
-				int widgetId = intent.GetIntExtra( AppWidgetManager.ExtraAppwidgetId, -1 );
-				if ( widgetId != -1 )
+				int widgetId = wrappedIntent.WidgetIdProperty;
+				if ( widgetId != AppWidgetManager.InvalidAppwidgetId )
 				{
 					// Get the index of the sort icon that has been clicked on
-					int iconIndex = intent.GetIntExtra( "IconIndex", -1 );
+					int iconIndex = wrappedIntent.IconIndexProperty;
 					if ( iconIndex != -1 )
 					{
+						// Process the click event associated with the icon
 						SortOrder.ProcessClickEvent( context, widgetId, iconIndex );
 
+						// Update the sort icons
 						appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
 
 						// Force the redisplaying of the data
@@ -72,10 +107,12 @@ namespace AutoNag
 					}
 				}
 			}
-			else if ( intent.Action == HelpAction )
+			else if ( intent.Action == ListChangedAction )
 			{
-				// Launch the TrackerControlDialogue
-				context.StartActivity( new Intent( context, typeof( HelpDialogueActivity ) ).AddFlags( ActivityFlags.NewTask ) );
+				// Redraw the header of the associated widget and force it to reload its tasks
+				int widgetId = wrappedIntent.WidgetIdProperty;
+				appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
+				appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
 			}
 
 			base.OnReceive(context, intent);
@@ -89,26 +126,23 @@ namespace AutoNag
 		/// <param name="appWidgetIds">App widget identifiers.</param>
 		public override void OnUpdate( Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds )
 		{
-			// Update each of the app widgets
-			for ( int index = 0; index < appWidgetIds.Length; ++index )
+			// Render each of the app widgets
+			foreach ( int widgetId in appWidgetIds )
 			{
-				int appWidgetId = appWidgetIds[ index ];
-
-				// Render this widget
-				appWidgetManager.UpdateAppWidget( appWidgetId, RenderWidgetContents( context, appWidgetId ) );   
+				appWidgetManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );   
 			}
 
-			base.OnUpdate(context, appWidgetManager, appWidgetIds);
+			base.OnUpdate( context, appWidgetManager, appWidgetIds );
 		}
-
 
 		//
 		// Public data constants
 		//
 
-		public const string LoadedAction = "com.example.android.stackwidget.LOADED_ACTION";
-		public const string UpdatedAction = "com.example.android.stackwidget.UPDATED_ACTION";
-		public const string SortAction = "com.example.android.stackwidget.SORT_ACTION";
+		public const string LoadedAction = "AutoNag.LOADED_ACTION";
+		public const string UpdatedAction = "AutoNag.UPDATED_ACTION";
+		public const string SortAction = "AutoNag.SORT_ACTION";
+		public const string ListChangedAction = "AutoNag.LIST_CHANGED_ACTION";
 
 		//
 		// Private methods
@@ -121,6 +155,21 @@ namespace AutoNag
 		/// <param name="widgetId">Widget identifier.</param>
 		private RemoteViews RenderWidgetContents( Context widgetContext, int widgetId )
 		{
+			// If there is no list name associated with this Widget then select one from those available in the database
+			string taskListName = ListNamePersistence.GetListName( widgetContext, widgetId );
+			if ( taskListName.Length == 0 )
+			{
+				// Get the list names from the database
+				IList< string > listNames = TaskRepository.GetTaskTables();
+
+				if ( listNames.Count > 0 )
+				{	
+					// Use the first list name
+					taskListName = listNames[ 0 ];
+					ListNamePersistence.SetListName( widgetContext, widgetId, taskListName );
+				}
+			}
+
 			// Instantiate the RemoteViews object for the app widget layout.
 			RemoteViews views = new RemoteViews( widgetContext.PackageName, Resource.Layout.WidgetLayout );
 
@@ -131,8 +180,7 @@ namespace AutoNag
 			// Set up the RemoteViews object to use a RemoteViews adapter. 
 			// This adapter connects to a RemoteViewsService through the specified intent.
 			// This is how you populate the data.
-			views.SetRemoteAdapter( widgetId, Resource.Id.listView, new Intent( widgetContext, typeof( UpdateService ) )
-				.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ) );
+			views.SetRemoteAdapter( widgetId, Resource.Id.listView, new WidgetIntent( widgetContext, typeof( UpdateService ) ).SetWidgetId( widgetId ) );
 
 			// The empty view is displayed when the collection has no items. 
 			// It should be in the same layout used to instantiate the RemoteViews object above.
@@ -143,26 +191,24 @@ namespace AutoNag
 			// These must be unique for all PendingIntents that have the same type i.e. typeof( TaskDetailsScreen ). As it
 			// is used for TaskID elsewhere don't use any positive integers
 			views.SetPendingIntentTemplate( Resource.Id.listView, 
-				PendingIntent.GetActivity( widgetContext, -1, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
-					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ), 
-				PendingIntentFlags.UpdateCurrent ) );
+				PendingIntent.GetActivity( widgetContext, -1, 
+					new WidgetIntent( widgetContext, typeof( TaskDetailsScreen ) ).SetWidgetId( widgetId ).SetTaskListName( taskListName ),
+					PendingIntentFlags.UpdateCurrent ) );
 
 			// Set up an intent to fire when the 'new' icon is clicked
 			views.SetOnClickPendingIntent( Resource.Id.newTask, 
-				PendingIntent.GetActivity( widgetContext, -2, new Intent( widgetContext, typeof( TaskDetailsScreen ) )
-					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId )
-					.PutExtra( "TaskID", 0 ), 
-				PendingIntentFlags.UpdateCurrent ) );
+				PendingIntent.GetActivity( widgetContext, -2, 
+					new WidgetIntent( widgetContext, typeof( TaskDetailsScreen ) ).SetWidgetId( widgetId ).SetTaskListName( taskListName ).SetTaskIdentity( 0 ),
+					PendingIntentFlags.UpdateCurrent ) );
 
 			// Set up an intent for the header text
 			views.SetOnClickPendingIntent( Resource.Id.headerText, 
-				PendingIntent.GetBroadcast( widgetContext, 2, new Intent( AutoNagWidget.HelpAction )
+				PendingIntent.GetActivity( widgetContext, 2, new Intent( widgetContext, typeof( SettingsActivity ) )
 					.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId ), 
-				PendingIntentFlags.UpdateCurrent ) );
+					PendingIntentFlags.UpdateCurrent ) );
 
 			// Show task count. This has to be obtained from the static count kept by the ListRemoteViewsFactory class
-			views.SetTextViewText( Resource.Id.headerText, string.Format( "{0} ({1})", widgetContext.GetString( Resource.String.widgetName ), 
-				TaskCountPersistence.GetTaskCount( widgetContext, widgetId ) ) );
+			views.SetTextViewText( Resource.Id.headerText, string.Format( "{0} ({1})", taskListName, TaskCountPersistence.GetTaskCount( widgetContext, widgetId ) ) );
 
 			return views;
 		}
@@ -170,11 +216,6 @@ namespace AutoNag
 		//
 		// Private data
 		//
-
-		/// <summary>
-		/// The help action.
-		/// </summary>
-		private const string HelpAction = "com.example.android.stackwidget.HELP_ACTION";
 
 		/// <summary>
 		/// SortOrder objects used to display sort order icons and respond to sort order changes.

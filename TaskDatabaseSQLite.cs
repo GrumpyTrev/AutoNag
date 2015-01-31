@@ -65,25 +65,71 @@ namespace AutoNag
 			// Save the full connection string
 			connectionString = "Data Source=" + dbPath;
 
+			// Create the tables if the database does not exist
+			if ( File.Exists( dbPath ) == false ) 
+			{
+				CreateList( "Items" );
+			}
+		}
+
+		/// <summary>
+		/// Create a table to contain a collection of tasks
+		/// </summary>
+		/// <returns>Success code.</returns>
+		/// <param name="listName">List name.</param>
+		public int CreateList( string listName )
+		{
+			int retCode = 0;
+
 			lock( locker ) 
 			{
-				// Create the tables if the database does not exist
-				if ( File.Exists( dbPath ) == false ) 
-				{
-					SqliteConnection connection = new SqliteConnection( connectionString );
-					connection.Open ();
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
 
-					SqliteCommand command = connection.CreateCommand();
-					command.CommandText = 
-						"CREATE TABLE [Items] ( Identity INTEGER PRIMARY KEY ASC, Name TEXT, Notes TEXT, Done INTEGER, NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT );";
-					command.ExecuteNonQuery();
+				retCode = new SqliteCommand( string.Format( 
+					"CREATE TABLE [{0}] ( Identity INTEGER PRIMARY KEY ASC, Name TEXT, Notes TEXT, Done INTEGER, NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT )",
+					listName ), connection ).ExecuteNonQuery();
 
-					// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-					// So just begin a transaction here
-					connection.BeginTransaction();
-					connection.Close ();
-				}
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close();
 			}
+
+			return retCode;
+		}
+
+		/// <summary>
+		/// Gets the names of the tables in the databases.
+		/// </summary>
+		/// <returns>The task tables.</returns>
+		public IList< string > GetTaskTables()
+		{
+			List< string > tableList = new List< string >();
+
+			lock( locker ) 
+			{
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
+
+				SqliteCommand command = connection.CreateCommand();
+				command.CommandText = "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'";
+
+				SqliteDataReader reader = command.ExecuteReader();
+
+				// Extract the tasks from the reader and add to the list
+				while ( reader.Read() == true )
+				{
+					tableList.Add( ( string )reader[ "Name" ] );
+				}
+
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close ();
+			}
+
+			return tableList;
 		}
 
 		/// <summary>
@@ -91,7 +137,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The tasks stored in a IEnumerable<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public IList< Task > GetItems( IList< Task.SortOrders > sortOrder )
+		public IList< Task > GetItems( string taskListName, IList< Task.SortOrders > sortOrder )
 		{
 			List< Task > taskList = new List< Task >();
 
@@ -101,13 +147,15 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items]";
 
 				// Get the order clause and add it to the query if it is defined
-				string orderClause = GetSortOrderClause( sortOrder );
-				if ( orderClause.Length > 0 )
+				if ( sortOrder != null )
 				{
-					command.CommandText = command.CommandText + " ORDER BY " + orderClause;
+					command.CommandText = string.Format( "SELECT * FROM [{0}] ORDER BY {1}", taskListName, GetSortOrderClause( sortOrder ) );
+				}
+				else
+				{
+					command.CommandText = string.Format( "SELECT * FROM [{0}]", taskListName );
 				}
 					
 				SqliteDataReader reader = command.ExecuteReader();
@@ -132,7 +180,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The task.</returns>
 		/// <param name="id">Identifier.</param>
-		public Task GetItem( int id ) 
+		public Task GetItem( string taskListName, int id ) 
 		{
 			Task item = new Task();
 
@@ -142,43 +190,8 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = 
-					"SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items] WHERE [Identity] = ?";
-				command.Parameters.Add( new SqliteParameter( DbType.Int32 ){ Value = id } );
-
-				SqliteDataReader reader = command.ExecuteReader();
-				if ( reader.Read() == true )
-				{
-					item = FromReader( reader );
-				}
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close ();
-			}
-
-			return item;
-		}
-
-		/// <summary>
-		/// Gets the last task inserted in the table
-		/// </summary>
-		/// <returns>The task.</returns>
-		/// <param name="id">Identifier.</param>
-		public Task GetLastItem() 
-		{
-			Task item = new Task();
-
-			lock( locker )
-			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = 
-					"SELECT [Identity], [Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] FROM [Items] " +
-					"WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [Items] )";
+				command.CommandText = string.Format( "SELECT * FROM [{0}] WHERE [Identity] = ?", taskListName );
+				command.Parameters.Add( new SqliteParameter( DbType.Int32, ( object )id ) );
 
 				SqliteDataReader reader = command.ExecuteReader();
 				if ( reader.Read() == true )
@@ -200,7 +213,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The number of items saved</returns>
 		/// <param name="item">Item.</param>
-		public int SaveItem (Task item) 
+		public int SaveItem( string taskListName, Task item ) 
 		{
 			int retCode = 0;
 
@@ -210,28 +223,51 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.Name } );
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.Notes } );
-				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Done } );
-				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.NotificationRequired } );
-				command.Parameters.Add( new SqliteParameter( DbType.Int32 ) { Value = item.Priority } );
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.StringDueDate } );
-				command.Parameters.Add( new SqliteParameter( DbType.String ) { Value = item.StringModifiedDate } );
+				command.Parameters.AddWithValue( null, item.Name );
+				command.Parameters.AddWithValue( null, item.Notes );
+				command.Parameters.AddWithValue( null, item.Done );
+				command.Parameters.AddWithValue( null, item.NotificationRequired );
+				command.Parameters.AddWithValue( null, item.Priority );
+
+				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
+				DateTime dueDateToStore = item.DueDate;
+				if ( item.DueDate == DateTime.MinValue )
+				{
+					dueDateToStore = DateTime.MaxValue;
+				}
+				command.Parameters.AddWithValue( null, dueDateToStore.ToString( DueDateFormat ) );
+
+				command.Parameters.AddWithValue( null, item.ModifiedDate.ToString( ModifiedDateFormat ) );
 
 				// Either update an existing row or add a new one
 				if ( item.ID != 0 )
 				{
-					command.CommandText = 
-						"UPDATE [Items] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?;";
-					command.Parameters.Add (new SqliteParameter (DbType.Int32) { Value = item.ID });
+					command.CommandText = string.Format( 
+						"UPDATE [{0}] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?", 
+						taskListName );
+					command.Parameters.AddWithValue( null, item.ID );
 				}
 				else
 				{
-					command.CommandText = 
-						"INSERT INTO [Items] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+					command.CommandText = string.Format(
+						"INSERT INTO [{0}] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+						taskListName );
 				}
 				
 				retCode = command.ExecuteNonQuery();
+
+				// If this is a new item then retrieve the new index
+				if ( item.ID == 0 )
+				{
+					command.CommandText = string.Format(
+						"SELECT [Identity] FROM [{0}] WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [Items] )", taskListName );
+
+					SqliteDataReader reader = command.ExecuteReader();
+					if ( reader.Read() == true )
+					{
+						item.ID =  Convert.ToInt32( reader[ "Identity" ] );
+					}
+				}
 
 				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
 				// So just begin a transaction here
@@ -247,7 +283,7 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The number of items deleted</returns>
 		/// <param name="id">Identifier.</param>
-		public int DeleteItem( int id ) 
+		public int DeleteItem( string taskListName, int id ) 
 		{
 			int retCode = 0;
 
@@ -257,8 +293,8 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = "DELETE FROM [Items] WHERE [Identity] = ?;";
-				command.Parameters.Add( new SqliteParameter(DbType.Int32) { Value = id } );
+				command.CommandText = string.Format( "DELETE FROM [{0}] WHERE [Identity] = ?", taskListName );
+				command.Parameters.AddWithValue( null, id );
 
 				retCode = command.ExecuteNonQuery();
 
@@ -290,8 +326,38 @@ namespace AutoNag
 			toTask.Done = Convert.ToBoolean( reader ["Done"] );
 			toTask.NotificationRequired = Convert.ToBoolean( reader ["NotificationRequired"] );
 			toTask.Priority	= Convert.ToInt32( reader[ "Priority" ] );
-			toTask.StringDueDate = reader[ "DueDate" ].ToString();
-			toTask.StringModifiedDate = reader[ "ModifiedDate" ].ToString();
+
+			// Allow the DueTime to be in either yyyyMMddHHmm or for compatibility yyyyMMdd
+			DateTime dueDateReadIn;
+
+			if ( ( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), DueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+				System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) &&
+				( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), CompatibleDueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+					System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) )
+			{
+				dueDateReadIn = DateTime.MinValue;
+			}
+			else
+			{
+				// In the database an undefined DueDate is set to the MaxValue, but in the rest of the system this is defined as MinValue so change it here
+				if ( dueDateReadIn.Date == DateTime.MaxValue.Date )
+				{
+					dueDateReadIn = DateTime.MinValue;
+				}
+			}
+
+			toTask.DueDate = dueDateReadIn;
+
+			// The format of the ModifiedDate is fixed
+			DateTime modifiedDateReadIn;
+
+			if ( DateTime.TryParseExact( reader[ "ModifiedDate" ].ToString(), ModifiedDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+				System.Globalization.DateTimeStyles.None, out modifiedDateReadIn ) == false )
+			{
+				modifiedDateReadIn = DateTime.MinValue;
+			}
+
+			toTask.ModifiedDate = modifiedDateReadIn;
 
 			return toTask;
 		}
@@ -349,5 +415,12 @@ namespace AutoNag
 		/// The connection string.
 		/// </summary>
 		private string connectionString = "";
+
+		/// <summary>
+		/// Format strings for dates held in the database
+		/// </summary>
+		private const string DueDateFormat = "yyyyMMddHHmm";
+		private const string CompatibleDueDateFormat = "yyyyMMdd";
+		private const string ModifiedDateFormat = "yyyyMMddHHmmss";
 	}
 }

@@ -1,29 +1,66 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Android.App;
+﻿// 
+// File Details 
+// -------------- 
+//
+// Project:     AutoNag
+// Task:        AlarmManagement
+// Filename:    NotificationCancelReceiver.cs
+// Created by:  T. Simmonds
+//
+//
+// File Description
+// ------------------
+//
+// Purpose:      The NotificationCancelReceiver is called when a notification is cancelled fromthe notification screen.
+//				 Turn off the notification in the associated task
+//				 
+// Description:  As purpose
+//
+//
+//
+// File History
+// ------------
+//
+// %version:  1 %
+//
+// (c) Copyright 2015 Trevor Simmonds.
+// This software is protected by copyright, the design of any 
+// article recorded in the software is protected by design 
+// right and the information contained in the software is 
+// confidential. This software may not be copied, any design 
+// may not be reproduced and the information contained in the 
+// software may not be used or disclosed except with the
+// prior written permission of and in a manner permitted by
+// the proprietors Trevor Simmonds (c) 2015
+//
+//    Copyright Holders:
+//       Trevor Simmonds,
+//       t.simmonds@virgin.net
+//
 using Android.Content;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
+using System;
+
 
 namespace AutoNag
 {
 	[BroadcastReceiver]
+	/// <summary>
+	/// The NotificationCancelReceiver is called when a notification is cancelled fromthe notification screen.
+	/// Turn off the notification in the associated task
+	/// </summary>
 	public class NotificationCancelReceiver : BroadcastReceiver
 	{
 		public override void OnReceive( Context cancelContext, Intent cancelIntent )
 		{
-			// Access the task associated with the intent and turn off the notification
-			int taskID = cancelIntent.GetIntExtra( "TaskID", 0 );
+			// Access the task and task list name associated with the intent and turn off the notification
+			WidgetIntent intentWrapper = new WidgetIntent( cancelIntent );
 
+			int taskID = intentWrapper.TaskIdentityProperty;
 			if ( taskID != 0 )
 			{
-				Task cancelTask = TaskManager.GetTask( taskID );
+				string taskListName = intentWrapper.TaskListNameProperty;
+
+				Task cancelTask = TaskRepository.GetTask( taskListName, taskID );
 
 				if ( cancelTask != null )
 				{
@@ -32,12 +69,13 @@ namespace AutoNag
 						cancelTask.NotificationRequired = false;
 						cancelTask.DueDate = new DateTime( cancelTask.DueDate.Year, cancelTask.DueDate.Month, cancelTask.DueDate.Day, 0, 0, 0 );
 
-						TaskManager.SaveTask( cancelTask );
-						cancelContext.SendBroadcast( new Intent( AutoNagWidget.UpdatedAction ) );
+						TaskRepository.SaveTask( taskListName, cancelTask );
+
+						// Refresh the widgets showing this task list
+						cancelContext.SendBroadcast( new WidgetIntent( AutoNagWidget.UpdatedAction ).SetTaskListName( taskListName ) );
 					}
 				}
 			}
-
 		}
 	}
 }

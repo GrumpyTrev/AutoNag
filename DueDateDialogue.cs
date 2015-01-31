@@ -36,14 +36,12 @@
 //       Trevor Simmonds,
 //       t.simmonds@virgin.net
 //
-using System;
 
 using Android.App;
+using System;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using Android.Util;
-using System.Collections.Generic;
 
 namespace AutoNag
 {

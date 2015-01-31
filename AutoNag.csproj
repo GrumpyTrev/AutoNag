@@ -57,7 +57,6 @@
     <Compile Include="TaskDetailsScreen.cs" />
     <Compile Include="AutoNagWidget.cs" />
     <Compile Include="Task.cs" />
-    <Compile Include="TaskManager.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="SortOrderPersistence.cs" />
     <Compile Include="HelpDialogueActivity.cs" />
@@ -70,6 +69,9 @@
     <Compile Include="NotificationTimeDialogue.cs" />
     <Compile Include="DueDateDialogue.cs" />
     <Compile Include="TaskCountPersistence.cs" />
+    <Compile Include="ListNamePersistence.cs" />
+    <Compile Include="SettingsActivity.cs" />
+    <Compile Include="IntentWrappers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -116,6 +118,7 @@
     <AndroidResource Include="Resources\layout\NotificationSelection.xml" />
     <AndroidResource Include="Resources\layout\DueDateSelection.xml" />
     <AndroidResource Include="Resources\layout-land\DueDateSelection.xml" />
+    <AndroidResource Include="Resources\xml\Preferences.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

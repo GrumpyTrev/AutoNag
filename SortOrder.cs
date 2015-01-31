@@ -1,10 +1,44 @@
-﻿using System.Collections.Generic;
+﻿//
+// Project:     AutoNag
+// Task:        User Interface
+// Filename:    SortOrder.cs
+// Created by:  T. Simmonds
+//
+//
+// File Description
+// ------------------
+//
+// Purpose:      The SortOrder class determines the order in which individual tasks are displayed in the Widget
+//				 
+// Description:  As purpose
+//
+//
+//
+// File History
+// ------------
+//
+// %version:  1 %
+//
+// (c) Copyright 2015 Trevor Simmonds.
+// This software is protected by copyright, the design of any 
+// article recorded in the software is protected by design 
+// right and the information contained in the software is 
+// confidential. This software may not be copied, any design 
+// may not be reproduced and the information contained in the 
+// software may not be used or disclosed except with the
+// prior written permission of and in a manner permitted by
+// the proprietors Trevor Simmonds (c) 2015
+//
+//    Copyright Holders:
+//       Trevor Simmonds,
+//       t.simmonds@virgin.net
+//
 
-using Android.Views;
-using Android.Widget;
 using Android.Content;
-using Android.Appwidget;
+using System.Collections.Generic;
+using Android.Widget;
 using Android.App;
+
 
 namespace AutoNag
 {
@@ -109,9 +143,9 @@ namespace AutoNag
 
 					// Setup a click handler
 					views.SetOnClickPendingIntent( iconIds[ itemIndex ], 
-						PendingIntent.GetBroadcast( displayContext, itemIndex, new Intent( AutoNagWidget.SortAction )
-							.PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId )
-							.PutExtra( "IconIndex", itemIndex ), PendingIntentFlags.UpdateCurrent ) );
+						PendingIntent.GetBroadcast( displayContext, itemIndex, 
+							new WidgetIntent( AutoNagWidget.SortAction ).SetWidgetId( widgetId ).SetIconIndex( itemIndex ), 
+						PendingIntentFlags.UpdateCurrent ) );
 				}
 			}
 		} 
@@ -221,11 +255,25 @@ namespace AutoNag
 		{
 		}
 
+		/// <summary>
+		/// Resource identity for the sort on icon
+		/// </summary>
 		private readonly int orderOnImage;
+
+		/// <summary>
+		/// Resource identity for the sort off icon
+		/// </summary>
 		private readonly int orderOffImage;
+
+		/// <summary>
+		/// Is this item on or off
+		/// </summary>
 		private bool orderOn;
+
+		/// <summary>
+		/// The type of the order.
+		/// </summary>
 		private readonly Task.SortOrders orderType;
 	}
-
 }
 

@@ -22,7 +22,7 @@
 //
 // %version:  1 %
 //
-// (c) Copyright 2014 Trevor Simmonds.
+// (c) Copyright 2015 Trevor Simmonds.
 // This software is protected by copyright, the design of any 
 // article recorded in the software is protected by design 
 // right and the information contained in the software is 
@@ -30,7 +30,7 @@
 // may not be reproduced and the information contained in the 
 // software may not be used or disclosed except with the
 // prior written permission of and in a manner permitted by
-// the proprietors Trevor Simmonds (c) 2014
+// the proprietors Trevor Simmonds (c) 2015
 //
 //    Copyright Holders:
 //       Trevor Simmonds,
@@ -55,36 +55,48 @@ namespace AutoNag
 		/// <summary>
 		/// Sets the alarm.
 		/// </summary>
+		/// <param name="taskListName">Task list name.</param>
 		/// <param name="taskIdentity">Task identity.</param>
 		/// <param name="taskName">Task name</param>
 		/// <param name="alarmDate">Alarm date.</param>
 		/// <param name="intentContext">Intent context.</param>
-		public static void SetAlarm( int taskIdentity, string taskName, DateTime alarmDate, Context intentContext )
+		public static void SetAlarm( string taskListName, int taskIdentity, string taskName, DateTime alarmDate, Context intentContext )
 		{
 			long timeToAlarm = ( long )( alarmDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
 
-			PendingIntent pendingIntent = PendingIntent.GetBroadcast( intentContext, taskIdentity, new Intent( intentContext, typeof( AlarmReceiver ) )
-				.PutExtra( "TaskID", taskIdentity )
-				.PutExtra( "TaskName", taskName ), 0);
-
-			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) ).Set( AlarmType.RtcWakeup, timeToAlarm, pendingIntent );
+			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
+				.Set( AlarmType.RtcWakeup, timeToAlarm, PendingIntent.GetBroadcast( intentContext, GetRequestCode( taskIdentity, taskListName ), 
+					new WidgetIntent( intentContext, typeof( AlarmReceiver ) ).SetTaskIdentity( taskIdentity ).SetTaskName( taskName )
+						.SetTaskListName( taskListName ), 0) );
 		}
 
 		/// <summary>
 		/// Cancels the alarm.
 		/// </summary>
 		/// <returns><c>true</c> if cancel alarm the specified taskIdentity intentContext; otherwise, <c>false</c>.</returns>
+		/// <param name="taskListName">Task list name.</param>
 		/// <param name="taskIdentity">Task identity.</param>
 		/// <param name="intentContext">Intent context.</param>
-		public static void CancelAlarm( int taskIdentity, Context intentContext )
+		public static void CancelAlarm( string taskListName, int taskIdentity, Context intentContext )
 		{
-			PendingIntent pendingIntent = PendingIntent.GetBroadcast( intentContext, taskIdentity, new Intent( intentContext, typeof( AlarmReceiver ) ), 0);
+			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
+				.Cancel( PendingIntent.GetBroadcast( intentContext, GetRequestCode( taskIdentity, taskListName ), 
+					new Intent( intentContext, typeof( AlarmReceiver ) ), 0) );
+		}
 
-			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) ).Cancel( pendingIntent );
+		/// <summary>
+		/// Get a unique request code from a combination of the task identity and task list name.
+		/// </summary>
+		/// <returns>The request code.</returns>
+		/// <param name="taskIdentity">Task identity.</param>
+		/// <param name="taskListName">Task list name.</param>
+		public static int GetRequestCode( int taskIdentity, string taskListName )
+		{
+			return string.Format( "{0}{1}", taskIdentity, taskListName ).GetHashCode();
 		}
 
 		//
-		//
+		// Private methods
 		//
 
 		/// <summary>
@@ -93,7 +105,6 @@ namespace AutoNag
 		private AlarmInterface()
 		{
 		}
-
 	}
 }
 

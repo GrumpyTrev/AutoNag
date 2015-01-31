@@ -37,13 +37,13 @@
 //       t.simmonds@virgin.net
 //
 
-using System.IO;
-
 using Android.App;
 using Android.OS;
 using Android.Widget;
 using Android.Text;
 using Android.Text.Util;
+
+using System.IO;
 using Android.Graphics;
 
 namespace AutoNag

@@ -37,12 +37,9 @@
 //       t.simmonds@virgin.net
 //
 
-using System;
-using System.Collections.Generic;
-
 using Android.App;
 using Android.Content;
-using Android.Widget;
+using System.Collections.Generic;
 
 namespace AutoNag
 {
@@ -65,13 +62,15 @@ namespace AutoNag
 		{
 			if ( intent.Action == Intent.ActionBootCompleted )
 			{
-				IEnumerator< Task > taskEnumerator = TaskManager.GetTasks( null ).GetEnumerator();
-				while ( taskEnumerator.MoveNext() == true )
+				IList< string > taskListNames = TaskRepository.GetTaskTables();
+				foreach ( string taskListName in taskListNames )
 				{
-					Task currentTask = taskEnumerator.Current;
-					if ( currentTask.NotificationRequired == true )
+					foreach ( Task currentTask in TaskRepository.GetTasks( taskListName, null ) )
 					{
-						AlarmInterface.SetAlarm( currentTask.ID, currentTask.Name, currentTask.DueDate, context );
+						if ( currentTask.NotificationRequired == true )
+						{
+							AlarmInterface.SetAlarm( taskListName, currentTask.ID, currentTask.Name, currentTask.DueDate, context );
+						}
 					}
 				}
 			}

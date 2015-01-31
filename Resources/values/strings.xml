@@ -18,4 +18,12 @@
     <string name="widgetName">AutoNag</string>
     <string name="noData">No data</string>
     <string name="helpTitle">About AutoNag</string>
+    <string name="settingsKey">settings</string>
+    <string name="helpSettingsTitle">AutoNag version 1.2</string>
+    <string name="helpSettingsSummary">Display details</string>
+    <string name="listSettingsKey">displayedList</string>
+    <string name="listSettingsTitle">Task list:</string>
+    <string name="listSettingsSummary">Select list</string>
+    <string name="chooseListKey">chooseList</string>
+    <string name="chooseListTitle">Select list</string>
 </resources>
