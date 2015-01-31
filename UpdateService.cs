@@ -128,17 +128,17 @@ namespace AutoNag
 
 			view.SetTextViewText( Resource.Id.taskName, taskToDisplay.Name );
 			view.SetTextViewText( Resource.Id.taskNote, taskToDisplay.Notes );
-			view.SetTextViewText( Resource.Id.lastChangedDate, taskToDisplay.ModifiedDate.ToString( @"dd/MM/yyyy" ) );
+			view.SetTextViewText( Resource.Id.lastChangedDate, taskToDisplay.ModifiedDate.ToString( DateDisplayFormat ) );
 
 			if ( taskToDisplay.Done == true )
 			{
-				view.SetInt( Resource.Id.overlay, "setBackgroundResource", Resource.Drawable.DoneBackground );
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Drawable.DoneBackground );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Visible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskDoneText ) );
 			}
 			else
 			{
-				view.SetInt( Resource.Id.overlay, "setBackgroundResource", Resource.Drawable.NotDoneBackground );
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Drawable.NotDoneBackground );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Invisible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskNormalText ) );
 			}
@@ -163,7 +163,7 @@ namespace AutoNag
 			{
 				view.SetViewVisibility( Resource.Id.taskDueLabel, ViewStates.Visible );
 				view.SetViewVisibility( Resource.Id.taskDue, ViewStates.Visible );
-				view.SetTextViewText( Resource.Id.taskDue, taskToDisplay.DueDate.ToString( @"dd/MM/yyyy" ) );
+				view.SetTextViewText( Resource.Id.taskDue, taskToDisplay.DueDate.ToString( DateDisplayFormat ) );
 
 				if ( taskToDisplay.NotificationRequired == false )
 				{
@@ -174,7 +174,7 @@ namespace AutoNag
 				{
 					view.SetViewVisibility( Resource.Id.taskNotification, ViewStates.Visible );
 					view.SetViewVisibility( Resource.Id.taskNotificationTime, ViewStates.Visible );
-					view.SetTextViewText( Resource.Id.taskNotificationTime, taskToDisplay.DueDate.ToString( @"HH:mm" ) );
+					view.SetTextViewText( Resource.Id.taskNotificationTime, taskToDisplay.DueDate.ToString( NotificationTimeDisplayFormat ) );
 				}
 			}
 
@@ -271,5 +271,20 @@ namespace AutoNag
 		/// The tasks.
 		/// </summary>
 		private IList<Task> tasks = null;
+
+		/// <summary>
+		/// The name of the background resource method.
+		/// </summary>
+		private const string BackgroundResourceMethodName = "setBackgroundResource";
+
+		/// <summary>
+		/// The date display format.
+		/// </summary>
+		private const string DateDisplayFormat = @"dd/MM/yyyy";
+
+		/// <summary>
+		/// The notification time display format.
+		/// </summary>
+		private const string NotificationTimeDisplayFormat = @"HH:mm";
 	}
 }

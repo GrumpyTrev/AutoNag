@@ -43,7 +43,7 @@ using System.Collections.Generic;
 namespace AutoNag
 {
 	[BroadcastReceiver (Label = "@string/widgetName")]
-	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction })]
+	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction, ListRenamedAction })]
 	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" )]
 	/// <summary>
 	/// The AutoNagWidget class controls the display of tasks within an AppWidget on the home screen.
@@ -114,6 +114,18 @@ namespace AutoNag
 				appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
 				appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
 			}
+			else if ( intent.Action == ListRenamedAction )
+			{
+				// Redraw the header of any widgets associated with the new task list
+				string taskListName = wrappedIntent.TaskListNameProperty;
+				foreach ( int widgetId in appWidgetIds )
+				{
+					if ( ListNamePersistence.GetListName( context, widgetId ) == taskListName )
+					{
+						appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
+					}
+				}
+			}
 
 			base.OnReceive(context, intent);
 		}
@@ -143,6 +155,7 @@ namespace AutoNag
 		public const string UpdatedAction = "AutoNag.UPDATED_ACTION";
 		public const string SortAction = "AutoNag.SORT_ACTION";
 		public const string ListChangedAction = "AutoNag.LIST_CHANGED_ACTION";
+		public const string ListRenamedAction = "AutoNag.LIST_RENAMED_ACTION";
 
 		//
 		// Private methods

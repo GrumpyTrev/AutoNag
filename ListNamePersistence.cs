@@ -38,6 +38,8 @@
 //
 using System;
 using Android.Content;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace AutoNag
 {
@@ -76,6 +78,28 @@ namespace AutoNag
 				.Commit();
 		}
 
+		/// <summary>
+		/// Gets the widget/list name items in the store.
+		/// </summary>
+		/// <returns>The items.</returns>
+		/// <param name="persistenceContext">Persistence context.</param>
+		public static IList< KeyValuePair< int, string > > GetItems( Context persistenceContext )
+		{
+			IList< KeyValuePair< int, string > > items = new List< KeyValuePair< int, string > >();
+
+			foreach ( KeyValuePair< string, object > item in persistenceContext.GetSharedPreferences( PreferenceFileName, FileCreationMode.Private ).All )
+			{
+				// The string is of the form {0}ListName - so remove the suffix and convert to an int
+				int index = item.Key.LastIndexOf( ListNameSuffix );
+				if ( index != -1 )
+				{
+					items.Add( new KeyValuePair<int, string>( Convert.ToInt32( item.Key.Remove( index ) ), ( string )item.Value ) );
+				}
+			}
+
+			return items;
+		}
+
 		//
 		// Private methods
 		//
@@ -100,6 +124,11 @@ namespace AutoNag
 		/// Format for the task count
 		/// </summary>
 		private const string ListNameFormat = "{0}ListName";
+
+		/// <summary>
+		/// The list name suffix.
+		/// </summary>
+		private const string ListNameSuffix = "ListName";
 	}
 }
 

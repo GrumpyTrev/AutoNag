@@ -70,13 +70,12 @@ namespace AutoNag
 			if ( key == GetString( Resource.String.listSettingsKey ) )
 			{
 				// The displayed list preference has changed.
-				// Store the changed value, display and broadcast the change
-				string taskListName = sharedPreferences.GetString( key, "" );
-				ListNamePersistence.SetListName( ApplicationContext, widgetIdentity, taskListName );
-
-				DisplayTaskListName( taskListName );
-
-				SendBroadcast( new WidgetIntent( AutoNagWidget.ListChangedAction ).SetWidgetId( widgetIdentity ) );
+				ProcessDisplayedListChange( sharedPreferences.GetString( key, "" ) );
+			}
+			else if ( key.StartsWith( RenameKeyPrefix ) == true )
+			{
+				// The user has entered a new name for a task list. 
+				ProcessTaskListNameChange( key );
 			}
 		}
 
@@ -97,14 +96,15 @@ namespace AutoNag
 			AddPreferencesFromResource( Resource.Xml.Preferences );
 
 			// Get the identity of the widget that launched this activity
-			widgetIdentity = Intent.GetIntExtra( AppWidgetManager.ExtraAppwidgetId, AppWidgetManager.InvalidAppwidgetId );
+			widgetIdentity = new WidgetIntent( Intent ).WidgetIdProperty;
 
-			// Get a reference to the preference item displaying the task list
+			// Get a reference to the preference items used elsewhere in tbhis class
 			PreferenceScreen screen = ( PreferenceScreen )FindPreference( GetString( Resource.String.settingsKey ) );
 			taskList = ( ListPreference )screen.FindPreference( GetString( Resource.String.listSettingsKey ) );
+			renameScreen = ( PreferenceScreen )screen.FindPreference( GetString( Resource.String.renameScreenKey ) );
 
-			// Initialise the task list preference item and display the currently displayed task list
-			InitialiseTaskListItem();
+			// Initialise any items that show task list names
+			InitialiseItemsShowingTaskListNames();
 		}
 
 		/// <summary>
@@ -126,12 +126,152 @@ namespace AutoNag
 		{
 			base.OnPause();
 
+			// Stop listening to changes
 			PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
 		}
 
 		//
 		// Private methods
 		//
+
+		/// <summary>
+		/// Initialises the items showing task list names.
+		/// </summary>
+		private void InitialiseItemsShowingTaskListNames()
+		{
+			IList< string > availableListNames = TaskRepository.GetTaskTables();
+
+			InitialiseTaskListItem( availableListNames );
+			InitialiseRenameScreen( availableListNames );
+		}
+
+
+		/// <summary>
+		/// Initialises the task list item.
+		/// </summary>
+		private void InitialiseTaskListItem( IList< string > availableListNames )
+		{
+			// Initialise the collection of available task lists
+			string[] availableListStrings = new string[ availableListNames.Count ];
+			availableListNames.CopyTo( availableListStrings, 0 );
+
+			taskList.SetEntries( availableListStrings );
+			taskList.SetEntryValues( availableListStrings );
+
+			taskList.DialogTitle = GetString( Resource.String.chooseListTitle );
+
+			// If the currently displayed task list name is known then select it
+			string taskListName = ListNamePersistence.GetListName( this, widgetIdentity );
+			if ( taskListName.Length > 0 )
+			{
+				taskList.Value = taskListName;
+			}
+
+			// Display the task list name
+			DisplayTaskListName( taskListName );
+		}
+
+		/// <summary>
+		/// Initialises the rename screen.
+		/// </summary>
+		/// <param name="availableListNames">Available list names.</param>
+		private void InitialiseRenameScreen( IList< string > availableListNames )
+		{
+			renameScreen.RemoveAll();
+
+			// Add an EditPreference item to the screen for every task list name
+			foreach( string listName in availableListNames )
+			{
+				EditTextPreference textPreference = new EditTextPreference( this );
+
+				string key = string.Format( "{0} <{1}>", RenameKeyPrefix, listName );
+				textPreference.Title = listName;
+				textPreference.Key = key;
+				textPreference.Text = listName;
+				textPreference.DialogTitle = key;
+
+				renameScreen.AddPreference( textPreference );
+			}
+		}
+
+		/// <summary>
+		/// The user has changed the name of a task list.
+		/// Check that this is not a duplicate name and if unique update the table name in the database
+		/// Update any ListNamePersistence items that contain this name and then inform the AutoNagWidget of the change 
+		/// </summary>
+		/// <param name="changedItemKey">Changed item key.</param>
+		private void ProcessTaskListNameChange( string changedItemKey )
+		{
+			EditTextPreference textPreference = ( EditTextPreference )renameScreen.FindPreference( changedItemKey );
+			if ( textPreference != null )
+			{
+				// Get the new and old names
+				string newName = textPreference.Text;
+				string oldName = textPreference.Title;
+
+				// Check for unique new name
+				if ( TaskRepository.GetTaskTables().Contains( newName ) == true )
+				{
+					// A list with this name already exists
+					// Set the default value for this item back to the original name
+					// Must do this with notifications turned off
+					PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
+					textPreference.Text = oldName;
+					PreferenceManager.GetDefaultSharedPreferences( this ).RegisterOnSharedPreferenceChangeListener( this );
+
+					// Tell the user
+					new AlertDialog.Builder( this )
+						.SetMessage( string.Format( "Task list <{0}> already exists.", newName ) )
+						.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
+						.Show(); 
+				}
+				else
+				{
+					// Attempt the rename
+					if ( TaskRepository.RenameList( oldName, newName ) == true )
+					{
+						bool anyUpdatesMade = false;
+
+						// Get all the ListNamePersistence entries
+						foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
+						{
+							// Update any entries with the old list name
+							if ( item.Value == oldName )
+							{
+								ListNamePersistence.SetListName( this, item.Key, newName );
+								anyUpdatesMade = true;
+							}
+						}
+
+						if ( anyUpdatesMade == true )
+						{
+							// Re-initialise any items showing the list names
+							InitialiseItemsShowingTaskListNames();
+
+							// Tell the widget
+							SendBroadcast( new WidgetIntent( AutoNagWidget.ListRenamedAction ).SetTaskListName( newName ) );
+						}
+					}
+				}
+			}
+
+		}
+
+		/// <summary>
+		/// The user has changed the list associated with the widget that initiated this activity
+		/// Get the new list name. Store it and broadcast the change to the widget
+		/// </summary>
+		private void ProcessDisplayedListChange( string taskListName )
+		{
+			// Update the persisted association
+			ListNamePersistence.SetListName( this, widgetIdentity, taskListName );
+
+			// Display it 
+			DisplayTaskListName( taskListName );
+
+			// Tell the widget
+			SendBroadcast( new WidgetIntent( AutoNagWidget.ListChangedAction ).SetWidgetId( widgetIdentity ) );
+		}
 
 		/// <summary>
 		/// Display the task list being displayed by the widget
@@ -144,33 +284,7 @@ namespace AutoNag
 				taskListName = "None";
 			}
 
-			taskList.Title = string.Format( "{0} {1}", GetString( Resource.String.listSettingsTitle ), taskListName );
-		}
-
-		/// <summary>
-		/// Initialises the task list item.
-		/// </summary>
-		private void InitialiseTaskListItem()
-		{
-			// Initialise the collection of available task lists by interrogating the database and pass to the displayedList screen
-			IList< string > availableListNames = TaskRepository.GetTaskTables();
-			string[] availableListStrings = new string[ availableListNames.Count ];
-			availableListNames.CopyTo( availableListStrings, 0 );
-
-			taskList.SetEntries( availableListStrings );
-			taskList.SetEntryValues( availableListStrings );
-
-			taskList.DialogTitle = GetString( Resource.String.chooseListTitle );
-
-			// If the currently displayed task list name is known then select it
-			string taskListName = ListNamePersistence.GetListName( ApplicationContext, widgetIdentity );
-			if ( taskListName.Length > 0 )
-			{
-				taskList.Value = taskListName;
-			}
-
-			// Display the task list name
-			DisplayTaskListName( taskListName );
+			taskList.Title = string.Format( "{0} <{1}>", GetString( Resource.String.listSettingsTitle ), taskListName );
 		}
 
 		// 
@@ -186,6 +300,16 @@ namespace AutoNag
 		/// The task list preference item
 		/// </summary>
 		private ListPreference taskList = null;
+
+		/// <summary>
+		/// The list rename preference screen.
+		/// </summary>
+		private PreferenceScreen renameScreen = null;
+
+		/// <summary>
+		/// The prefix for all rename items
+		/// </summary>
+		private const string RenameKeyPrefix = "Rename";
 	}
 }
 

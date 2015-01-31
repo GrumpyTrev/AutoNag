@@ -100,6 +100,32 @@ namespace AutoNag
 		}
 
 		/// <summary>
+		/// Renames the list.
+		/// </summary>
+		/// <returns>Success code.</returns>
+		/// <param name="oldName">Old name.</param>
+		/// <param name="newName">New name.</param>
+		public int RenameList( string oldName, string newName )
+		{
+			int retCode = 0;
+
+			lock( locker ) 
+			{
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
+
+				retCode = new SqliteCommand( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, newName ), connection ).ExecuteNonQuery();
+
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close();
+			}
+
+			return retCode;
+		}
+
+		/// <summary>
 		/// Gets the names of the tables in the databases.
 		/// </summary>
 		/// <returns>The task tables.</returns>
@@ -112,10 +138,7 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'";
-
-				SqliteDataReader reader = command.ExecuteReader();
+				SqliteDataReader reader = new SqliteCommand( "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'", connection ).ExecuteReader();
 
 				// Extract the tasks from the reader and add to the list
 				while ( reader.Read() == true )
@@ -189,8 +212,7 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = string.Format( "SELECT * FROM [{0}] WHERE [Identity] = ?", taskListName );
+				SqliteCommand command = new SqliteCommand( string.Format( "SELECT * FROM [{0}] WHERE [Identity] = ?", taskListName ), connection );
 				command.Parameters.Add( new SqliteParameter( DbType.Int32, ( object )id ) );
 
 				SqliteDataReader reader = command.ExecuteReader();
@@ -292,8 +314,7 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				SqliteCommand command = connection.CreateCommand();
-				command.CommandText = string.Format( "DELETE FROM [{0}] WHERE [Identity] = ?", taskListName );
+				SqliteCommand command = new SqliteCommand( string.Format( "DELETE FROM [{0}] WHERE [Identity] = ?", taskListName ), connection );
 				command.Parameters.AddWithValue( null, id );
 
 				retCode = command.ExecuteNonQuery();

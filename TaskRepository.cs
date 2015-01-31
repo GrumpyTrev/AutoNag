@@ -110,6 +110,17 @@ namespace AutoNag
 			return ( InstanceProperty.sqliteDatabase.CreateList( listName ) == SQLiteSingleItemUpdated );
 		}
 
+		/// <summary>
+		/// Renames the list.
+		/// </summary>
+		/// <returns><c>true</c>, if list was renamed, <c>false</c> otherwise.</returns>
+		/// <param name="oldName">Old name.</param>
+		/// <param name="newName">New name.</param>
+		public static bool RenameList( string oldName, string newName )
+		{
+			return ( InstanceProperty.sqliteDatabase.RenameList( oldName, newName ) == SQLiteOk );
+		}
+
 		//
 		// Private methods
 		// 
@@ -158,6 +169,11 @@ namespace AutoNag
 		/// Success code for SQLite commands that only affect a single row
 		/// </summary>
 		private const int SQLiteSingleItemUpdated = 1;
+
+		/// <summary>
+		/// Success code for SQLite commands that do not return a count
+		/// </summary>
+		private const int SQLiteOk = 0;
 	}	
 }
 

@@ -9,9 +9,30 @@
         	android:targetPackage="AutoNag.AutoNag"
             android:targetClass="autonag.HelpDialogueActivity" />
     </Preference>
-    <ListPreference
-    	android:key="@string/listSettingsKey"
-        android:title="@string/listSettingsTitle"
-        android:summary="@string/listSettingsSummary">
-	</ListPreference>
+	<PreferenceCategory
+		android:title="@string/widgetSpecificCategory" >
+	    <ListPreference
+	    	android:key="@string/listSettingsKey"
+	        android:title="@string/listSettingsTitle"
+	        android:summary="@string/listSettingsSummary">
+		</ListPreference>
+	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="@string/listManagementCategory" >
+		<PreferenceScreen
+			android:key="@string/renameScreenKey"
+	        android:title="@string/renameScreenTitle"
+			android:persistent="false" >
+		</PreferenceScreen>
+		<PreferenceScreen
+			android:key="@string/createScreenKey"
+	        android:title="@string/createScreenTitle"
+			android:persistent="false" >
+		</PreferenceScreen>
+		<PreferenceScreen
+			android:key="@string/deleteScreenKey"
+	        android:title="@string/deleteScreenTitle"
+			android:persistent="false" >
+		</PreferenceScreen>
+	</PreferenceCategory>
 </PreferenceScreen>
