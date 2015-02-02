@@ -24,15 +24,14 @@
 	        android:title="@string/renameScreenTitle"
 			android:persistent="false" >
 		</PreferenceScreen>
-		<PreferenceScreen
-			android:key="@string/createScreenKey"
-	        android:title="@string/createScreenTitle"
-			android:persistent="false" >
-		</PreferenceScreen>
-		<PreferenceScreen
-			android:key="@string/deleteScreenKey"
-	        android:title="@string/deleteScreenTitle"
-			android:persistent="false" >
-		</PreferenceScreen>
+		<EditTextPreference
+			android:key="@string/createListKey"
+	        android:title="@string/createListTitle"
+	        android:dialogTitle="@string/createListDialogTitle" >
+		</EditTextPreference>
+		<ListPreference
+			android:key="@string/deleteListKey"
+	        android:title="@string/deleteListTitle" >
+		</ListPreference>
 	</PreferenceCategory>
 </PreferenceScreen>

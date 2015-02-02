@@ -148,28 +148,20 @@ namespace AutoNag
 			{
 				Dismiss();
 			};
-
 			layoutView.FindViewById< Button >( Resource.Id.notificationSetButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
 				// Need to clear the focus here to make sure that any changes in progress are saved to the TimePicker
 				notificationTimePicker.ClearFocus();
 
 				// Pass back the notification
-				if ( listener != null )
-				{
-					listener.OnNotificationSet( ( int )notificationTimePicker.CurrentHour, ( int )notificationTimePicker.CurrentMinute );
-				}
+				listener.OnNotificationSet( ( int )notificationTimePicker.CurrentHour, ( int )notificationTimePicker.CurrentMinute );
 
 				Dismiss();
 			};
-
 			layoutView.FindViewById< Button >( Resource.Id.notificationClearButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
 				// Pass back the notification
-				if ( listener != null )
-				{
-					listener.OnNotificationCleared();
-				}
+				listener.OnNotificationCleared();
 
 				Dismiss();
 			};

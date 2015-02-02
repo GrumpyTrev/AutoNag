@@ -62,8 +62,7 @@ namespace AutoNag
 		{
 			if ( intent.Action == Intent.ActionBootCompleted )
 			{
-				IList< string > taskListNames = TaskRepository.GetTaskTables();
-				foreach ( string taskListName in taskListNames )
+				foreach ( string taskListName in TaskRepository.GetTaskTables() )
 				{
 					foreach ( Task currentTask in TaskRepository.GetTasks( taskListName, null ) )
 					{

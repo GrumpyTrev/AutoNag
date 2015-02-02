@@ -77,8 +77,7 @@ namespace AutoNag
 			SetContentView( Resource.Layout.About );
 
 			// Extract the text from the 'legal' file, processing any embedded Html
-			TextView legalView = FindViewById< TextView >( Resource.Id.legal_text );
-			legalView.Text = Html.FromHtml( ReadRawTextFile( Resource.Raw.legal ) ).ToString();
+			FindViewById< TextView >( Resource.Id.legal_text ).Text = Html.FromHtml( ReadRawTextFile( Resource.Raw.legal ) ).ToString();
 
 			// Extract the text from the 'info' file, processing any embedded Html
 			TextView infoView = FindViewById< TextView >( Resource.Id.info_text );

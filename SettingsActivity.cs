@@ -69,13 +69,19 @@ namespace AutoNag
 		{
 			if ( key == GetString( Resource.String.listSettingsKey ) )
 			{
-				// The displayed list preference has changed.
 				ProcessDisplayedListChange( sharedPreferences.GetString( key, "" ) );
 			}
 			else if ( key.StartsWith( RenameKeyPrefix ) == true )
 			{
-				// The user has entered a new name for a task list. 
 				ProcessTaskListNameChange( key );
+			}
+			else if ( key == GetString( Resource.String.createListKey ) )
+			{
+				ProcessCreateList();
+			}
+			else if ( key == GetString( Resource.String.deleteListKey ) )
+			{
+				ProcessDeleteList( sharedPreferences.GetString( key, "" ) );
 			}
 		}
 
@@ -98,10 +104,15 @@ namespace AutoNag
 			// Get the identity of the widget that launched this activity
 			widgetIdentity = new WidgetIntent( Intent ).WidgetIdProperty;
 
-			// Get a reference to the preference items used elsewhere in tbhis class
+			// Get a reference to the preference items used elsewhere in this class
 			PreferenceScreen screen = ( PreferenceScreen )FindPreference( GetString( Resource.String.settingsKey ) );
 			taskList = ( ListPreference )screen.FindPreference( GetString( Resource.String.listSettingsKey ) );
 			renameScreen = ( PreferenceScreen )screen.FindPreference( GetString( Resource.String.renameScreenKey ) );
+			textPreference = ( EditTextPreference )screen.FindPreference( GetString( Resource.String.createListKey ) );
+			deleteList = ( ListPreference )screen.FindPreference( GetString( Resource.String.deleteListKey ) );
+
+			// Clear any preferenecs that may be left from the last time this activity was run
+			taskList.Value = "";
 
 			// Initialise any items that show task list names
 			InitialiseItemsShowingTaskListNames();
@@ -115,7 +126,7 @@ namespace AutoNag
 			base.OnResume();
 
 			// Listen to changes
-			PreferenceManager.GetDefaultSharedPreferences( this ).RegisterOnSharedPreferenceChangeListener( this );
+			RegisterListener();
 		}
 
 		/// <summary>
@@ -127,7 +138,7 @@ namespace AutoNag
 			base.OnPause();
 
 			// Stop listening to changes
-			PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
+			DeregisterListener();
 		}
 
 		//
@@ -147,7 +158,7 @@ namespace AutoNag
 
 
 		/// <summary>
-		/// Initialises the task list item.
+		/// Initialises the display task list and delete list items.
 		/// </summary>
 		private void InitialiseTaskListItem( IList< string > availableListNames )
 		{
@@ -155,6 +166,7 @@ namespace AutoNag
 			string[] availableListStrings = new string[ availableListNames.Count ];
 			availableListNames.CopyTo( availableListStrings, 0 );
 
+			// Initialise the display task list
 			taskList.SetEntries( availableListStrings );
 			taskList.SetEntryValues( availableListStrings );
 
@@ -169,6 +181,12 @@ namespace AutoNag
 
 			// Display the task list name
 			DisplayTaskListName( taskListName );
+
+			// Initialise the delete list
+			deleteList.SetEntries( availableListStrings );
+			deleteList.SetEntryValues( availableListStrings );
+
+			deleteList.DialogTitle = GetString( Resource.String.deleteListDialogTitle );
 		}
 
 		/// <summary>
@@ -215,9 +233,9 @@ namespace AutoNag
 					// A list with this name already exists
 					// Set the default value for this item back to the original name
 					// Must do this with notifications turned off
-					PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
+					DeregisterListener();
 					textPreference.Text = oldName;
-					PreferenceManager.GetDefaultSharedPreferences( this ).RegisterOnSharedPreferenceChangeListener( this );
+					RegisterListener();
 
 					// Tell the user
 					new AlertDialog.Builder( this )
@@ -228,7 +246,7 @@ namespace AutoNag
 				else
 				{
 					// Attempt the rename
-					if ( TaskRepository.RenameList( oldName, newName ) == true )
+					if ( TaskRepository.RenameTaskList( oldName, newName ) == true )
 					{
 						bool anyUpdatesMade = false;
 
@@ -274,6 +292,99 @@ namespace AutoNag
 		}
 
 		/// <summary>
+		/// The user has supplied the name for a new task list.
+		/// If the list name is unique create the associated table
+		/// </summary>
+		private void ProcessCreateList()
+		{
+			string listName = textPreference.Text;
+			if ( TaskRepository.GetTaskTables().Contains( listName ) == true )
+			{
+				// A list with this name already exists
+				// Tell the user
+				new AlertDialog.Builder( this )
+					.SetMessage( string.Format( "Task list <{0}> already exists.", listName ) )
+					.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
+					.Show(); 
+			}
+			else
+			{
+				if ( TaskRepository.CreateTaskList( listName ) == true )
+				{
+					// Re-initialise any items showing the list names
+					InitialiseItemsShowingTaskListNames();
+				}
+			}
+
+			// Set the default value for this item back to an empty string
+			// Must do this with notifications turned off
+			DeregisterListener();
+			textPreference.Text = "";
+			RegisterListener();
+		}
+
+		/// <summary>
+		/// The user has selected a task list to delete
+		/// Confirm the deletion with the user
+		/// </summary>
+		private void ProcessDeleteList( string taskListName )
+		{
+			// Form a list of those widgets displaying the task list
+			List< int > widgetsDisplayingList = new List<int>();
+			foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
+			{
+				if ( item.Value == taskListName )
+				{
+					widgetsDisplayingList.Add( item.Key );
+				}
+			}
+
+			// Set the confirmation string according to whether or not the list is being displayed
+			string message = "";
+			if ( widgetsDisplayingList.Count == 0 )
+			{
+				message = string.Format( "Do you really want to delete list <{0}>?", taskListName );
+			}
+			else
+			{
+				message = string.Format( "List <{0}> is currently being displayed. Do you really want to delete it?", taskListName );
+			}
+
+			// Display the dialogue
+			new AlertDialog.Builder( this )
+				.SetMessage( message )
+				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
+				{
+					// Delete the list
+					if ( TaskRepository.DeleteTaskList( taskListName ) == true )
+					{
+						// Clear the associations for this task list name
+						foreach( int widgetId in widgetsDisplayingList )
+						{
+							ListNamePersistence.SetListName( this, widgetId, "" );
+						}
+
+						// Tell the widgets
+						if ( widgetsDisplayingList.Count > 0 )
+						{
+							SendBroadcast( new WidgetIntent( AutoNagWidget.ListDeletedAction ) );
+						}
+
+						// Re-initialise any lists showing the task list names
+						InitialiseItemsShowingTaskListNames();
+					}
+				} )
+				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => {} )
+				.Show(); 
+
+			// Set the default value for this item back to an empty string
+			// Must do this with notifications turned off
+			DeregisterListener();
+			deleteList.Value = "";
+			RegisterListener();
+		}
+
+		/// <summary>
 		/// Display the task list being displayed by the widget
 		/// </summary>
 		/// <param name="taskListName">Task list name.</param>
@@ -285,6 +396,22 @@ namespace AutoNag
 			}
 
 			taskList.Title = string.Format( "{0} <{1}>", GetString( Resource.String.listSettingsTitle ), taskListName );
+		}
+
+		/// <summary>
+		/// Registers the listener.
+		/// </summary>
+		private void RegisterListener()
+		{
+			PreferenceManager.GetDefaultSharedPreferences( this ).RegisterOnSharedPreferenceChangeListener( this );
+		}
+
+		/// <summary>
+		/// Deregisters the listener.
+		/// </summary>
+		private void DeregisterListener()
+		{
+			PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
 		}
 
 		// 
@@ -305,6 +432,16 @@ namespace AutoNag
 		/// The list rename preference screen.
 		/// </summary>
 		private PreferenceScreen renameScreen = null;
+
+		/// <summary>
+		/// The text preference.
+		/// </summary>
+		private EditTextPreference textPreference = null;
+
+		/// <summary>
+		/// The delete list.
+		/// </summary>
+		private ListPreference deleteList = null;
 
 		/// <summary>
 		/// The prefix for all rename items

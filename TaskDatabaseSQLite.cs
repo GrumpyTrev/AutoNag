@@ -57,19 +57,12 @@ namespace AutoNag
 
 		/// <summary>
 		/// Initializes a new instance of the TaskDatabaseSQLite class"/> TaskDatabase. 
-		/// If the database doesn't exist, it will create the database and all the tables.
 		/// </summary>
 		/// <param name="dbPath">Db path.</param>
 		public TaskDatabaseSQLite( string dbPath ) 
 		{
 			// Save the full connection string
 			connectionString = "Data Source=" + dbPath;
-
-			// Create the tables if the database does not exist
-			if ( File.Exists( dbPath ) == false ) 
-			{
-				CreateList( "Items" );
-			}
 		}
 
 		/// <summary>
@@ -79,24 +72,8 @@ namespace AutoNag
 		/// <param name="listName">List name.</param>
 		public int CreateList( string listName )
 		{
-			int retCode = 0;
-
-			lock( locker ) 
-			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				retCode = new SqliteCommand( string.Format( 
-					"CREATE TABLE [{0}] ( Identity INTEGER PRIMARY KEY ASC, Name TEXT, Notes TEXT, Done INTEGER, NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT )",
-					listName ), connection ).ExecuteNonQuery();
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close();
-			}
-
-			return retCode;
+			return ExecuteSimpleNonQuery( string.Format( "CREATE TABLE [{0}] ( Identity INTEGER PRIMARY KEY ASC, Name TEXT, Notes TEXT, Done INTEGER," +
+				" NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT )", listName ) );
 		}
 
 		/// <summary>
@@ -107,22 +84,17 @@ namespace AutoNag
 		/// <param name="newName">New name.</param>
 		public int RenameList( string oldName, string newName )
 		{
-			int retCode = 0;
+			return ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, newName ) );
+		}
 
-			lock( locker ) 
-			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				retCode = new SqliteCommand( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, newName ), connection ).ExecuteNonQuery();
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close();
-			}
-
-			return retCode;
+		/// <summary>
+		/// Deletes the list.
+		/// </summary>
+		/// <returns>Success code.</returns>
+		/// <param name="listName">List name.</param>
+		public int DeleteList( string listName )
+		{
+			return ExecuteSimpleNonQuery( string.Format( "DROP TABLE [{0}]", listName ) );
 		}
 
 		/// <summary>
@@ -140,10 +112,10 @@ namespace AutoNag
 
 				SqliteDataReader reader = new SqliteCommand( "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'", connection ).ExecuteReader();
 
-				// Extract the tasks from the reader and add to the list
+				// Extract the table names from the reader and add to the list
 				while ( reader.Read() == true )
 				{
-					tableList.Add( ( string )reader[ "Name" ] );
+					tableList.Add( reader.GetString( 0 ) );
 				}
 
 				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
@@ -172,16 +144,8 @@ namespace AutoNag
 				SqliteCommand command = connection.CreateCommand();
 
 				// Get the order clause and add it to the query if it is defined
-				if ( sortOrder != null )
-				{
-					command.CommandText = string.Format( "SELECT * FROM [{0}] ORDER BY {1}", taskListName, GetSortOrderClause( sortOrder ) );
-				}
-				else
-				{
-					command.CommandText = string.Format( "SELECT * FROM [{0}]", taskListName );
-				}
-					
-				SqliteDataReader reader = command.ExecuteReader();
+				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}]{1}", taskListName, GetSortOrderClause( sortOrder ) ), 
+					connection ).ExecuteReader();
 
 				// Extract the tasks from the reader and add to teh lsit
 				while ( reader.Read() == true )
@@ -212,10 +176,7 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				SqliteCommand command = new SqliteCommand( string.Format( "SELECT * FROM [{0}] WHERE [Identity] = ?", taskListName ), connection );
-				command.Parameters.Add( new SqliteParameter( DbType.Int32, ( object )id ) );
-
-				SqliteDataReader reader = command.ExecuteReader();
+				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}] WHERE [Identity] = {1}", taskListName, id ), connection ).ExecuteReader();
 				if ( reader.Read() == true )
 				{
 					item = FromReader( reader );
@@ -282,12 +243,12 @@ namespace AutoNag
 				if ( item.ID == 0 )
 				{
 					command.CommandText = string.Format(
-						"SELECT [Identity] FROM [{0}] WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [Items] )", taskListName );
+						"SELECT [Identity] FROM [{0}] WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [{0}] )", taskListName );
 
 					SqliteDataReader reader = command.ExecuteReader();
 					if ( reader.Read() == true )
 					{
-						item.ID =  Convert.ToInt32( reader[ "Identity" ] );
+						item.ID =  reader.GetInt32( 0 );
 					}
 				}
 
@@ -307,6 +268,20 @@ namespace AutoNag
 		/// <param name="id">Identifier.</param>
 		public int DeleteItem( string taskListName, int id ) 
 		{
+			return ExecuteSimpleNonQuery( string.Format( "DELETE FROM [{0}] WHERE [Identity] = {1}", taskListName, id ) );
+		}
+
+		//
+		// Private methods
+		//
+
+		/// <summary>
+		/// Executes the simple non query.
+		/// </summary>
+		/// <returns>The simple non query.</returns>
+		/// <param name="commandText">Command text.</param>
+		private int ExecuteSimpleNonQuery( string commandText )
+		{
 			int retCode = 0;
 
 			lock( locker ) 
@@ -314,23 +289,16 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				SqliteCommand command = new SqliteCommand( string.Format( "DELETE FROM [{0}] WHERE [Identity] = ?", taskListName ), connection );
-				command.Parameters.AddWithValue( null, id );
-
-				retCode = command.ExecuteNonQuery();
+				retCode = new SqliteCommand( commandText, connection ).ExecuteNonQuery();
 
 				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
 				// So just begin a transaction here
 				connection.BeginTransaction();
-				connection.Close ();
+				connection.Close();
 			}
 
 			return retCode;
 		}
-
-		//
-		// Private methods
-		//
 
 		/// <summary>
 		/// Extract a Task object from a SqliteDataReader
@@ -417,7 +385,10 @@ namespace AutoNag
 					}
 				}
 
-				orderClause = sortOrderBuilder.ToString();
+				if ( sortOrderBuilder.Length > 0 )
+				{
+					orderClause = string.Format( " ORDER BY {0}", sortOrderBuilder.ToString() );
+				}
 			}
 
 			return orderClause;

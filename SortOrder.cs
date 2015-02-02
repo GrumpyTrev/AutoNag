@@ -141,14 +141,29 @@ namespace AutoNag
 					// Set the image associated with the SortOrderItem in the correct position
 					item.SetImage( views, iconIds[ itemIndex ], orderState.StateProperty );
 
-					// Setup a click handler
+					// Setup a click handler. Must use a WidgetIntent request code here to make it unique to a specific widget
 					views.SetOnClickPendingIntent( iconIds[ itemIndex ], 
-						PendingIntent.GetBroadcast( displayContext, itemIndex, 
-							new WidgetIntent( AutoNagWidget.SortAction ).SetWidgetId( widgetId ).SetIconIndex( itemIndex ), 
+						PendingIntent.GetBroadcast( displayContext, WidgetIntent.GetRequestCode( widgetId, itemIndex ),
+								new WidgetIntent( AutoNagWidget.SortAction ).SetWidgetId( widgetId ).SetIconIndex( itemIndex ), 
 						PendingIntentFlags.UpdateCurrent ) );
 				}
 			}
 		} 
+
+		/// <summary>
+		/// Cancel any handlers set up for the sort icons
+		/// </summary>
+		/// <param name="displayContext">Display context.</param>
+		/// <param name="widgetId">Widget identifier.</param>
+		/// <param name="noOfItems">No of items.</param>
+		public static void CancelHandlers( Context displayContext, int widgetId, int noOfItems )
+		{
+			for ( int itemIndex = 0; itemIndex < noOfItems; ++itemIndex )
+			{
+				PendingIntent.GetBroadcast( displayContext, WidgetIntent.GetRequestCode( widgetId, itemIndex ),
+					new WidgetIntent( AutoNagWidget.SortAction ), PendingIntentFlags.UpdateCurrent ).Cancel();
+			}
+		}
 
 		/// <summary>
 		/// Gets the task sort order.

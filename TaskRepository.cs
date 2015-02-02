@@ -107,7 +107,7 @@ namespace AutoNag
 		/// <param name="listName">List name.</param>
 		public static bool CreateTaskList( string listName )
 		{
-			return ( InstanceProperty.sqliteDatabase.CreateList( listName ) == SQLiteSingleItemUpdated );
+			return ( InstanceProperty.sqliteDatabase.CreateList( listName ) == SQLiteOk );
 		}
 
 		/// <summary>
@@ -116,9 +116,19 @@ namespace AutoNag
 		/// <returns><c>true</c>, if list was renamed, <c>false</c> otherwise.</returns>
 		/// <param name="oldName">Old name.</param>
 		/// <param name="newName">New name.</param>
-		public static bool RenameList( string oldName, string newName )
+		public static bool RenameTaskList( string oldName, string newName )
 		{
 			return ( InstanceProperty.sqliteDatabase.RenameList( oldName, newName ) == SQLiteOk );
+		}
+
+		/// <summary>
+		/// Deletes the task list.
+		/// </summary>
+		/// <returns><c>true</c>, if task list was deleted, <c>false</c> otherwise.</returns>
+		/// <param name="listName">List name.</param>
+		public static bool DeleteTaskList( string listName )
+		{
+			return ( InstanceProperty.sqliteDatabase.DeleteList( listName ) == SQLiteOk );
 		}
 
 		//

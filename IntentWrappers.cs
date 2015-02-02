@@ -86,9 +86,10 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The widget identifier.</returns>
 		/// <param name="widgetId">Identity.</param>
-		public WidgetIntent SetWidgetId( int widgetId )
+		public virtual WidgetIntent SetWidgetId( int widgetId )
 		{
 			PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId );
+
 			return this;
 		}
 
@@ -219,6 +220,28 @@ namespace AutoNag
 			}
 		}
 
+		/// <summary>
+		/// Get a unique request code from a combination of the task identity and task list name.
+		/// </summary>
+		/// <returns>The request code.</returns>
+		/// <param name="taskIdentity">Task identity.</param>
+		/// <param name="taskListName">Task list name.</param>
+		public static int GetRequestCode( int taskIdentity, string taskListName )
+		{
+			return string.Format( "{0} {1}", taskIdentity, taskListName ).GetHashCode();
+		}
+
+		/// <summary>
+		/// Get a unique request code from a combination of the widget identity and request type.
+		/// </summary>
+		/// <returns>The request code.</returns>
+		/// <param name="taskIdentity">Task identity.</param>
+		/// <param name="taskListName">Task list name.</param>
+		public static int GetRequestCode( int widgetIdentity, int requestType )
+		{
+			return string.Format( "{0} {1}", widgetIdentity, requestType ).GetHashCode();
+		}
+
 		//
 		// Protected data
 		// 
@@ -256,6 +279,42 @@ namespace AutoNag
 		/// The task name item.
 		/// </summary>
 		private const string TaskNameItem = "taskName";
+	}
+
+	/// <summary>
+	/// Pending widget intent.
+	/// </summary>
+	public class PendingWidgetIntent : WidgetIntent
+	{
+		/// <summary>
+		/// PendingWidgetIntent constructor for an intent targeted at a class"/> class.
+		/// </summary>
+		/// <param name="intentContext">Intent context.</param>
+		/// <param name="target">Target.</param>
+		public PendingWidgetIntent( Context intentContext, System.Type target ) : base( intentContext, target )
+		{ 
+		}
+
+		/// <summary>
+		/// PendingWidgetIntent constructor for an intent with a broadcast action"/> class.
+		/// </summary>
+		/// <param name="action">Action.</param>
+		public PendingWidgetIntent( string action ) : base( action )
+		{
+		}
+
+		/// <summary>
+		/// Sets the widget identifier( via the base class) and a unique data code
+		/// </summary>
+		/// <returns>The widget identifier.</returns>
+		/// <param name="widgetId">Identity.</param>
+		public override WidgetIntent SetWidgetId( int widgetId )
+		{
+			// Make this intent unique by encoding the widget id in the URI data
+			SetData( Android.Net.Uri.FromParts( "content", widgetId.ToString(), null ) );
+
+			return base.SetWidgetId( widgetId );
+		}
 	}
 }
 

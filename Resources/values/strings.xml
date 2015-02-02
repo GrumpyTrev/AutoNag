@@ -22,16 +22,18 @@
     <string name="helpSettingsTitle">AutoNag version 1.2</string>
     <string name="helpSettingsSummary">Display details</string>
     <string name="listSettingsKey">displayedList</string>
-    <string name="listSettingsTitle">Showing</string>
+    <string name="listSettingsTitle">Currently showing</string>
     <string name="listSettingsSummary">Change</string>
     <string name="chooseListKey">chooseList</string>
     <string name="chooseListTitle">Select list</string>
     <string name="renameScreenKey">renameScreen</string>
-    <string name="renameScreenTitle">Rename</string>
-    <string name="createScreenKey">createScreen</string>
-    <string name="createScreenTitle">Create</string>
-    <string name="deleteScreenKey">deleteScreen</string>
-    <string name="deleteScreenTitle">Delete</string>
+    <string name="renameScreenTitle">Rename list</string>
+    <string name="createListKey">createList</string>
+    <string name="createListTitle">Create list</string>
+    <string name="createListDialogTitle">Create new list</string>
+    <string name="deleteListKey">deleteScreen</string>
+    <string name="deleteListTitle">Delete list</string>
+    <string name="deleteListDialogTitle">Delete list</string>
     <string name="widgetSpecificCategory">Widget settings</string>
     <string name="listManagementCategory">List management</string>
 </resources>

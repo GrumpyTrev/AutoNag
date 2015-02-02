@@ -78,7 +78,7 @@ namespace AutoNag
 		/// <param name="initialTime">Initial time.</param>
 		public static DueDateDialogue CreateInstance( DateTime initialDate )
 		{
-			DueDateDialogue DateDialogue = new DueDateDialogue();
+			DueDateDialogue dateDialogue = new DueDateDialogue();
 
 			Bundle dialogueArgs = new Bundle();
 
@@ -92,9 +92,9 @@ namespace AutoNag
 				dialogueArgs.PutLong( DueDateLabel, ( long )( initialDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds );
 			}
 
-			DateDialogue.Arguments = dialogueArgs;
+			dateDialogue.Arguments = dialogueArgs;
 
-			return DateDialogue;
+			return dateDialogue;
 		}
 
 
@@ -144,30 +144,20 @@ namespace AutoNag
 			Dialog.SetTitle( "Due date" );
 
 			// Setup the click handlers for the 3 buttons
-			layoutView.FindViewById< Button >( Resource.Id.dueDateCancelButton ).Click += ( buttonSender, buttonEvents ) =>
+			layoutView.FindViewById< Button >( Resource.Id.dueDateCancelButton ).Click += ( buttonSender, buttonEvents ) => 
 			{
 				Dismiss();
 			};
-
 			layoutView.FindViewById< Button >( Resource.Id.dueDateSetButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
 				// Pass back the notification
-				if ( listener != null )
-				{
-					listener.OnDueDateSet( new DateTime( calendarControl.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks ) );
-				}
-
+				listener.OnDueDateSet( new DateTime( calendarControl.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks ) );
 				Dismiss();
 			};
-
 			layoutView.FindViewById< Button >( Resource.Id.dueDateClearButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
 				// Pass back the notification
-				if ( listener != null )
-				{
-					listener.OnDueDateCleared();
-				}
-
+				listener.OnDueDateCleared();
 				Dismiss();
 			};
 

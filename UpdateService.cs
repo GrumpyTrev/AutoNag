@@ -245,16 +245,24 @@ namespace AutoNag
 		/// </summary>
 		private void LoadTasks()
 		{
+			// Clear the tasks first
+			tasks.Clear();
+
 			// Get the current task list name associated with this widget (may be different from when this factory was created)
 			string taskListName = ListNamePersistence.GetListName( savedContext, widgetIdentity );
 
-			// Load the tasks with optional sort order
-			tasks = TaskRepository.GetTasks( taskListName, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
+			Android.Util.Log.Debug( "LoadTasks", string.Format( "Widget <{0}> list <{1}>", widgetIdentity, taskListName ) );
 
-			// Save the count of items to be displayed on the widget
-			TaskCountPersistence.SetTaskCount( savedContext, widgetIdentity, tasks.Count );
+			if ( taskListName.Length > 0 )
+			{
+				// Load the tasks with optional sort order
+				tasks = TaskRepository.GetTasks( taskListName, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
 
-			savedContext.SendBroadcast( new WidgetIntent( AutoNagWidget.LoadedAction ).SetWidgetId( widgetIdentity ) );
+				// Save the count of items to be displayed on the widget
+				TaskCountPersistence.SetTaskCount( savedContext, widgetIdentity, tasks.Count );
+
+				savedContext.SendBroadcast( new WidgetIntent( AutoNagWidget.LoadedAction ).SetWidgetId( widgetIdentity ) );
+			}
 		}
 
 		/// <summary>
@@ -270,7 +278,7 @@ namespace AutoNag
 		/// <summary>
 		/// The tasks.
 		/// </summary>
-		private IList<Task> tasks = null;
+		private IList< Task > tasks = new List< Task >();
 
 		/// <summary>
 		/// The name of the background resource method.

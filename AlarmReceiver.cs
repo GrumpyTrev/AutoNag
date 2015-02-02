@@ -64,18 +64,19 @@ namespace AutoNag
 			int taskID = wrappedIntent.TaskIdentityProperty;
 			string taskName = wrappedIntent.TaskNameProperty;
 			string taskListName = wrappedIntent.TaskListNameProperty;
+			int requestCode = WidgetIntent.GetRequestCode( taskID, taskListName );
 
  			// Create a Notification with a ContentIntent to activate the TaskDetailsScreen. 
 			// The request code needs to be based on the task identity and list name.
 			// The intent needs to include the task identity, the task list name and a flag indicating that the notification should be turned off.
-			PendingIntent viewIntent = PendingIntent.GetActivity( alarmContext, AlarmInterface.GetRequestCode( taskID, taskListName ), 
+			PendingIntent viewIntent = PendingIntent.GetActivity( alarmContext, requestCode, 
 				new WidgetIntent( alarmContext, typeof( TaskDetailsScreen ) ).SetTaskIdentity( taskID ).SetTaskListName( taskListName ).SetNotification( true ),
 				0 ) ;
 
 			// Add an intent for when the notification is cancelled.
 			// The request code needs to be based on the task identity and list name.
 			// The intent needs to include the task identity and the task list name.
-			PendingIntent cancelIntent = PendingIntent.GetBroadcast( alarmContext, AlarmInterface.GetRequestCode( taskID, taskListName ), 
+			PendingIntent cancelIntent = PendingIntent.GetBroadcast( alarmContext, requestCode, 
 				new WidgetIntent( alarmContext, typeof( NotificationCancelReceiver ) ).SetTaskIdentity( taskID ).SetTaskListName( taskListName ),
 				0 ) ;
 
@@ -87,7 +88,7 @@ namespace AutoNag
 				.SetDeleteIntent( cancelIntent )
 				.SetSound( RingtoneManager.GetDefaultUri( RingtoneType.Notification ) );
 
-			( ( NotificationManager )alarmContext.GetSystemService( Context.NotificationService ) ).Notify( taskID, notificationBuilder.Build() );
+			( ( NotificationManager )alarmContext.GetSystemService( Context.NotificationService ) ).Notify( requestCode, notificationBuilder.Build() );
 		}
 	}
 }

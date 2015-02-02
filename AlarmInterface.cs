@@ -65,7 +65,7 @@ namespace AutoNag
 			long timeToAlarm = ( long )( alarmDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
 
 			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
-				.Set( AlarmType.RtcWakeup, timeToAlarm, PendingIntent.GetBroadcast( intentContext, GetRequestCode( taskIdentity, taskListName ), 
+				.Set( AlarmType.RtcWakeup, timeToAlarm, PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
 					new WidgetIntent( intentContext, typeof( AlarmReceiver ) ).SetTaskIdentity( taskIdentity ).SetTaskName( taskName )
 						.SetTaskListName( taskListName ), 0) );
 		}
@@ -80,19 +80,8 @@ namespace AutoNag
 		public static void CancelAlarm( string taskListName, int taskIdentity, Context intentContext )
 		{
 			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
-				.Cancel( PendingIntent.GetBroadcast( intentContext, GetRequestCode( taskIdentity, taskListName ), 
+				.Cancel( PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
 					new Intent( intentContext, typeof( AlarmReceiver ) ), 0) );
-		}
-
-		/// <summary>
-		/// Get a unique request code from a combination of the task identity and task list name.
-		/// </summary>
-		/// <returns>The request code.</returns>
-		/// <param name="taskIdentity">Task identity.</param>
-		/// <param name="taskListName">Task list name.</param>
-		public static int GetRequestCode( int taskIdentity, string taskListName )
-		{
-			return string.Format( "{0}{1}", taskIdentity, taskListName ).GetHashCode();
 		}
 
 		//

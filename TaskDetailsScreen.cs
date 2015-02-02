@@ -87,7 +87,7 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// This hook is called whenever an item in your options menu is selected.
+		/// This hook is called whenever an item in the options menu is selected.
 		/// </summary>
 		/// <param name="item">The menu item that was selected.</param>
 		/// <returns>True</returns>
@@ -214,12 +214,11 @@ namespace AutoNag
 			// Set the layout to be the TaskDetails screen
 			SetContentView( Resource.Layout.TaskDetails );
 
-			// Get references to the view components
+			// Get references to the view components that are used elsewhere
 			nameTextEdit = FindViewById< EditText >( Resource.Id.detailsName );
 			notesTextEdit = FindViewById< EditText >( Resource.Id.detailsNote );
 			taskDone = FindViewById< CheckBox >( Resource.Id.detailsDone );
 			dueDateDisplay = FindViewById< TextView >( Resource.Id.detailsDueDate );
-			priorityLabel =  FindViewById< TextView >( Resource.Id.detailsPriorityLabel );
 			priorityImage = FindViewById< ImageView >( Resource.Id.detailsImagePriority );
 			notificationImage = FindViewById< ImageView >( Resource.Id.detailsImageNotification );
 
@@ -236,7 +235,7 @@ namespace AutoNag
 			notesTextEdit.AfterTextChanged += ( sender, args) => { UpdateSaveState(); };
 			dueDateDisplay.Click += ( sender, args ) => { ChangeDate(); };
 			taskDone.CheckedChange += ( sender, args ) => { UpdateSaveState(); };
-			priorityLabel.Click += ( sender, args ) => { ChangePriority(); };
+			FindViewById< TextView >( Resource.Id.detailsPriorityLabel ).Click += ( sender, args ) => { ChangePriority(); };
 			priorityImage.Click += ( sender, args ) => { ChangePriority(); };
 			notificationImage.Click += ( sender, args ) => { ChangeNotification(); };
 		}
@@ -294,6 +293,9 @@ namespace AutoNag
 
 			// Get the task identity and if it is non-zero load it.
 			int taskID = wrappedIntent.TaskIdentityProperty;
+
+			Android.Util.Log.Debug( "CarryOutIntentActions", string.Format( "Task id {0}, table {1}", taskID, taskListName ) );
+
 			if ( taskID > 0 ) 
 			{
 				task = TaskRepository.GetTask( taskListName, taskID );
@@ -315,7 +317,7 @@ namespace AutoNag
 					}
 
 					// Remove the notification
-					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( taskID );
+					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( WidgetIntent.GetRequestCode( taskID, taskListName ) );
 				}
 			}
 
@@ -371,8 +373,7 @@ namespace AutoNag
 		/// </summary>
 		private void ChangeDate()
 		{
-			DialogFragment dialogue = DueDateDialogue.CreateInstance( displayedDueDate );
-			dialogue.Show( FragmentManager.BeginTransaction(), "DueDateDialogue" );
+			DueDateDialogue.CreateInstance( displayedDueDate ).Show( FragmentManager.BeginTransaction(), "DueDateDialogue" );
 		}
 
 		/// <summary>
@@ -397,8 +398,7 @@ namespace AutoNag
 			// Don't show the dialogue it the due date is not set
 			if ( displayedDueDate != DateTime.MinValue )
 			{
-				DialogFragment dialogue = NotificationTimeDialogue.CreateInstance( displayedDueDate );
-				dialogue.Show( FragmentManager.BeginTransaction(), "NotificationTimeDialogue" );
+				NotificationTimeDialogue.CreateInstance( displayedDueDate ).Show( FragmentManager.BeginTransaction(), "NotificationTimeDialogue" );
 			}
 		}
 
@@ -558,7 +558,6 @@ namespace AutoNag
 		private TextView dueDateDisplay;
 		private ImageView priorityImage;
 		private ImageView notificationImage;
-		private TextView priorityLabel;
 
 		/// <summary>
 		/// The priority value being displayed
