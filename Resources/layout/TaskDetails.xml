@@ -81,7 +81,7 @@
             android:textColor="#ffffffff"
             android:textSize="16dp"
             android:layout_marginLeft="3dp"
-            android:background="@drawable/TextBorder"
+            android:background="@drawable/textBorder"
             android:paddingRight="2dp"
             android:paddingLeft="2dp"
             android:minWidth="50dp"

@@ -17,7 +17,7 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <ReleaseVersion>1.1</ReleaseVersion>
+    <ReleaseVersion>2.0</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -72,6 +72,12 @@
     <Compile Include="ListNamePersistence.cs" />
     <Compile Include="SettingsActivity.cs" />
     <Compile Include="IntentWrappers.cs" />
+    <Compile Include="CustomPreference.cs" />
+    <Compile Include="ListColourPersistence.cs" />
+    <Compile Include="ListColourHelper.cs" />
+    <Compile Include="ColourAdapter.cs" />
+    <Compile Include="ListPreference.cs" />
+    <Compile Include="ListNameAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -80,18 +86,13 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\values\strings.xml" />
-    <AndroidResource Include="Resources\drawable\pressed.xml" />
     <AndroidResource Include="Resources\drawable\DoneBackground.xml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackground.xml" />
     <AndroidResource Include="Resources\drawable\GreyedOut.xml" />
-    <AndroidResource Include="Resources\layout\TaskDetails.axml" />
     <AndroidResource Include="Resources\menu\DetailsScreenMenu.xml" />
-    <AndroidResource Include="Resources\drawable\textBorder.xml" />
     <AndroidResource Include="Resources\drawable\widgetBackground.xml" />
     <AndroidResource Include="Resources\xml\WidgetProvider.xml" />
     <AndroidResource Include="Resources\layout\WidgetLayout.xml" />
     <AndroidResource Include="Resources\values\colours.xml" />
-    <AndroidResource Include="Resources\drawable\Normal.xml" />
     <AndroidResource Include="Resources\layout\WidgetItem.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
@@ -119,6 +120,19 @@
     <AndroidResource Include="Resources\layout\DueDateSelection.xml" />
     <AndroidResource Include="Resources\layout-land\DueDateSelection.xml" />
     <AndroidResource Include="Resources\xml\Preferences.xml" />
+    <AndroidResource Include="Resources\menu\TestMenu.xml" />
+    <AndroidResource Include="Resources\drawable\NotDoneBackgroundYellow.xml" />
+    <AndroidResource Include="Resources\drawable\NotDoneBackgroundGreen.xml" />
+    <AndroidResource Include="Resources\drawable\ItemLeftBorder.xml" />
+    <AndroidResource Include="Resources\drawable\Pressed.xml" />
+    <AndroidResource Include="Resources\drawable\TextBorder.xml" />
+    <AndroidResource Include="Resources\layout\TaskDetails.xml" />
+    <AndroidResource Include="Resources\drawable\NotDoneBackgroundBlue.xml" />
+    <AndroidResource Include="Resources\layout\ListNameItem.axml" />
+    <AndroidResource Include="Resources\layout\ListName.axml" />
+    <AndroidResource Include="Resources\layout\DialogueEditText.axml" />
+    <AndroidResource Include="Resources\drawable\NotDoneBackgroundPink.xml" />
+    <AndroidResource Include="Resources\drawable\NotDoneBackgroundBeige.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

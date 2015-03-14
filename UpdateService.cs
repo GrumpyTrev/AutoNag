@@ -132,25 +132,20 @@ namespace AutoNag
 
 			if ( taskToDisplay.Done == true )
 			{
+				// Give it a dimmed background
 				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Drawable.DoneBackground );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Visible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskDoneText ) );
 			}
 			else
 			{
-				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Drawable.NotDoneBackground );
+				// Set the background resource according to the list name
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetDrawableResource( taskListName ) );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Invisible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskNormalText ) );
 			}
 
-			if ( taskToDisplay.Priority == 0 )
-			{
-				view.SetImageViewResource( Resource.Id.taskPriority, Resource.Drawable.StarOff );
-			}
-			else
-			{
-				view.SetImageViewResource( Resource.Id.taskPriority, Resource.Drawable.StarOn );
-			}
+			view.SetImageViewResource( Resource.Id.taskPriority, ( taskToDisplay.Priority == 0 ) ? Resource.Drawable.StarOff : Resource.Drawable.StarOn );
 
 			if ( taskToDisplay.DueDate == DateTime.MinValue )
 			{
@@ -249,9 +244,7 @@ namespace AutoNag
 			tasks.Clear();
 
 			// Get the current task list name associated with this widget (may be different from when this factory was created)
-			string taskListName = ListNamePersistence.GetListName( savedContext, widgetIdentity );
-
-			Android.Util.Log.Debug( "LoadTasks", string.Format( "Widget <{0}> list <{1}>", widgetIdentity, taskListName ) );
+			taskListName = ListNamePersistence.GetListName( savedContext, widgetIdentity );
 
 			if ( taskListName.Length > 0 )
 			{
@@ -274,6 +267,11 @@ namespace AutoNag
 		/// The widget identity.
 		/// </summary>
 		private readonly int widgetIdentity = 0;
+
+		/// <summary>
+		/// The name of the task list being displayed by the widget
+		/// </summary>
+		private string taskListName = "";
 
 		/// <summary>
 		/// The tasks.

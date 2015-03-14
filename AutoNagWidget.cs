@@ -42,9 +42,10 @@ using System.Collections.Generic;
 
 namespace AutoNag
 {
-	[BroadcastReceiver (Label = "@string/widgetName")]
-	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction, ListRenamedAction, ListDeletedAction })]
-	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" )]
+	[BroadcastReceiver (Label = "@string/widgetName") ]
+	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction, ListRenamedAction, 
+		ListDeletedAction, ListColourAction } ) ]
+	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" ) ]
 	/// <summary>
 	/// The AutoNagWidget class controls the display of tasks within an AppWidget on the home screen.
 	/// </summary>
@@ -72,6 +73,7 @@ namespace AutoNag
 			switch ( intent.Action )
 			{
 				case UpdatedAction:
+				case ListColourAction:
 				{
 					// Notify any widgets associated with task list to update their data
 					foreach ( int notificationWidgetId in appWidgetIds )
@@ -115,7 +117,6 @@ namespace AutoNag
 					// Redraw the header of the associated widget and force it to reload its tasks
 					appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
 					appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
-
 					break;
 				}
 
@@ -127,9 +128,9 @@ namespace AutoNag
 						if ( ListNamePersistence.GetListName( context, notificationWidgetId ) == taskListName )
 						{
 							appManager.UpdateAppWidget( notificationWidgetId, RenderWidgetContents( context, widgetId ) );
+							appManager.NotifyAppWidgetViewDataChanged( notificationWidgetId, Resource.Id.listView );
 						}
 					}
-
 					break;
 				}
 
@@ -172,6 +173,7 @@ namespace AutoNag
 		public const string ListChangedAction = "AutoNag.LIST_CHANGED_ACTION";
 		public const string ListRenamedAction = "AutoNag.LIST_RENAMED_ACTION";
 		public const string ListDeletedAction = "AutoNag.LIST_DELETED_ACTION";
+		public const string ListColourAction = "AutoNag.LIST_COLOUR_ACTION";
 
 		//
 		// Private methods

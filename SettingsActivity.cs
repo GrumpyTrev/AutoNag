@@ -3,7 +3,7 @@
 // -------------- 
 //
 // Project:     AutoNag
-// Task:        User Interface
+// Task:        Settings
 // Filename:    SettingsActivity.cs
 // Created by:  T. Simmonds
 //
@@ -44,6 +44,10 @@ using Android.App;
 using Android.Appwidget;
 using System.Collections.Generic;
 using Android.Content;
+using Android.Widget;
+using System;
+using Android.Views.InputMethods;
+using Android.Views;
 
 namespace AutoNag
 {
@@ -51,38 +55,18 @@ namespace AutoNag
 	/// The SettingsActivity activity displays the current configuration of an AutoNag widget.
 	/// </summary>
 	[Activity (Label="AutoNag settings") ]
-	public class SettingsActivity : PreferenceActivity, ISharedPreferencesOnSharedPreferenceChangeListener
+	public class SettingsActivity : PreferenceActivity
 	{
+		/// <summary>
+		/// Display delegate.
+		/// </summary>
+		public delegate void DisplayDelegate( Dialog dialogue );
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public SettingsActivity()
 		{
-		}
-
-		/// <summary>
-		/// Raises the shared preference changed event.
-		/// </summary>
-		/// <param name="sharedPreferences">Shared preferences.</param>
-		/// <param name="key">Key.</param>
-		public void OnSharedPreferenceChanged( ISharedPreferences sharedPreferences, string key )
-		{
-			if ( key == GetString( Resource.String.listSettingsKey ) )
-			{
-				ProcessDisplayedListChange( sharedPreferences.GetString( key, "" ) );
-			}
-			else if ( key.StartsWith( RenameKeyPrefix ) == true )
-			{
-				ProcessTaskListNameChange( key );
-			}
-			else if ( key == GetString( Resource.String.createListKey ) )
-			{
-				ProcessCreateList();
-			}
-			else if ( key == GetString( Resource.String.deleteListKey ) )
-			{
-				ProcessDeleteList( sharedPreferences.GetString( key, "" ) );
-			}
 		}
 
 		//
@@ -106,39 +90,43 @@ namespace AutoNag
 
 			// Get a reference to the preference items used elsewhere in this class
 			PreferenceScreen screen = ( PreferenceScreen )FindPreference( GetString( Resource.String.settingsKey ) );
-			taskList = ( ListPreference )screen.FindPreference( GetString( Resource.String.listSettingsKey ) );
-			renameScreen = ( PreferenceScreen )screen.FindPreference( GetString( Resource.String.renameScreenKey ) );
-			textPreference = ( EditTextPreference )screen.FindPreference( GetString( Resource.String.createListKey ) );
-			deleteList = ( ListPreference )screen.FindPreference( GetString( Resource.String.deleteListKey ) );
 
-			// Clear any preferenecs that may be left from the last time this activity was run
-			taskList.Value = "";
+			currentListPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.widgetCurrentListKey ) );
+			createPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.createListKey ) );
+			deletePreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.deleteListKey ) );
+			colourPreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.colourListKey ) );
+			renamePreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.renameScreenKey ) );
+
+			availableListsCategory = ( PreferenceCategory )screen.FindPreference( GetString( Resource.String.widgetSelectListCategoryKey ) );
 
 			// Initialise any items that show task list names
-			InitialiseItemsShowingTaskListNames();
-		}
+			InitialiseTaskListItem();
 
-		/// <summary>
-		/// Raises the resume event.
-		/// </summary>
-		protected override void OnResume()
-		{
-			base.OnResume();
-
-			// Listen to changes
-			RegisterListener();
+			// Set up the click handlers
+			deletePreference.SelectedProperty = OnDeleteList;
+			colourPreference.SelectedProperty = OnColourList;
+			renamePreference.SelectedProperty = OnRenameList;
+			createPreference.SelectedProperty = OnCreateList;
 		}
 
 		/// <summary>
 		/// Called as part of the activity lifecycle when an activity is going into
 		///  the background, but has not (yet) been killed.
+		/// Dismiss any dialogues being shown by the ListPreference classes
 		/// </summary>
 		protected override void OnPause()
 		{
 			base.OnPause();
 
-			// Stop listening to changes
-			DeregisterListener();
+			deletePreference.OnDismiss();
+			colourPreference.OnDismiss();
+			renamePreference.OnDismiss();
+
+			if ( dialogueBeingShown != null )
+			{
+				dialogueBeingShown.Dismiss();
+				dialogueBeingShown = null;
+			}
 		}
 
 		//
@@ -146,191 +134,174 @@ namespace AutoNag
 		//
 
 		/// <summary>
-		/// Initialises the items showing task list names.
+		/// Initialises the available lists collection and refreshes the other preferences that contain list names
 		/// </summary>
-		private void InitialiseItemsShowingTaskListNames()
+		private void InitialiseTaskListItem()
 		{
-			IList< string > availableListNames = TaskRepository.GetTaskTables();
+			// Display the currently selected task list name
+			DisplayTaskListName();
 
-			InitialiseTaskListItem( availableListNames );
-			InitialiseRenameScreen( availableListNames );
-		}
-
-
-		/// <summary>
-		/// Initialises the display task list and delete list items.
-		/// </summary>
-		private void InitialiseTaskListItem( IList< string > availableListNames )
-		{
-			// Initialise the collection of available task lists
-			string[] availableListStrings = new string[ availableListNames.Count ];
-			availableListNames.CopyTo( availableListStrings, 0 );
-
-			// Initialise the display task list
-			taskList.SetEntries( availableListStrings );
-			taskList.SetEntryValues( availableListStrings );
-
-			taskList.DialogTitle = GetString( Resource.String.chooseListTitle );
-
-			// If the currently displayed task list name is known then select it
-			string taskListName = ListNamePersistence.GetListName( this, widgetIdentity );
-			if ( taskListName.Length > 0 )
+			// Remove all existing entries from the available Lists Category
+			availableListsCategory.RemoveAll();
+		
+			foreach ( string listName in TaskRepository.GetTaskTables() )
 			{
-				taskList.Value = taskListName;
-			}
-
-			// Display the task list name
-			DisplayTaskListName( taskListName );
-
-			// Initialise the delete list
-			deleteList.SetEntries( availableListStrings );
-			deleteList.SetEntryValues( availableListStrings );
-
-			deleteList.DialogTitle = GetString( Resource.String.deleteListDialogTitle );
-		}
-
-		/// <summary>
-		/// Initialises the rename screen.
-		/// </summary>
-		/// <param name="availableListNames">Available list names.</param>
-		private void InitialiseRenameScreen( IList< string > availableListNames )
-		{
-			renameScreen.RemoveAll();
-
-			// Add an EditPreference item to the screen for every task list name
-			foreach( string listName in availableListNames )
-			{
-				EditTextPreference textPreference = new EditTextPreference( this );
-
-				string key = string.Format( "{0} <{1}>", RenameKeyPrefix, listName );
-				textPreference.Title = listName;
-				textPreference.Key = key;
-				textPreference.Text = listName;
-				textPreference.DialogTitle = key;
-
-				renameScreen.AddPreference( textPreference );
-			}
-		}
-
-		/// <summary>
-		/// The user has changed the name of a task list.
-		/// Check that this is not a duplicate name and if unique update the table name in the database
-		/// Update any ListNamePersistence items that contain this name and then inform the AutoNagWidget of the change 
-		/// </summary>
-		/// <param name="changedItemKey">Changed item key.</param>
-		private void ProcessTaskListNameChange( string changedItemKey )
-		{
-			EditTextPreference textPreference = ( EditTextPreference )renameScreen.FindPreference( changedItemKey );
-			if ( textPreference != null )
-			{
-				// Get the new and old names
-				string newName = textPreference.Text;
-				string oldName = textPreference.Title;
-
-				// Check for unique new name
-				if ( TaskRepository.GetTaskTables().Contains( newName ) == true )
+				// Don't show the selected list
+				if ( listName != currentListName )
 				{
-					// A list with this name already exists
-					// Set the default value for this item back to the original name
-					// Must do this with notifications turned off
-					DeregisterListener();
-					textPreference.Text = oldName;
-					RegisterListener();
-
-					// Tell the user
-					new AlertDialog.Builder( this )
-						.SetMessage( string.Format( "Task list <{0}> already exists.", newName ) )
-						.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
-						.Show(); 
-				}
-				else
-				{
-					// Attempt the rename
-					if ( TaskRepository.RenameTaskList( oldName, newName ) == true )
-					{
-						bool anyUpdatesMade = false;
-
-						// Get all the ListNamePersistence entries
-						foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
-						{
-							// Update any entries with the old list name
-							if ( item.Value == oldName )
-							{
-								ListNamePersistence.SetListName( this, item.Key, newName );
-								anyUpdatesMade = true;
-							}
-						}
-
-						if ( anyUpdatesMade == true )
-						{
-							// Re-initialise any items showing the list names
-							InitialiseItemsShowingTaskListNames();
-
-							// Tell the widget
-							SendBroadcast( new WidgetIntent( AutoNagWidget.ListRenamedAction ).SetTaskListName( newName ) );
-						}
-					}
+					availableListsCategory.AddPreference( new CustomPreference( this, OnSelectList, ListColourHelper.GetColourResource( listName ), listName ) );
 				}
 			}
 
+			deletePreference.NotifyDataSetChanged();
+			colourPreference.NotifyDataSetChanged();
+			renamePreference.NotifyDataSetChanged();
 		}
 
 		/// <summary>
 		/// The user has changed the list associated with the widget that initiated this activity
 		/// Get the new list name. Store it and broadcast the change to the widget
 		/// </summary>
-		private void ProcessDisplayedListChange( string taskListName )
+		/// <param name="listName">List name.</param>
+		private void OnSelectList( string taskListName )
 		{
 			// Update the persisted association
 			ListNamePersistence.SetListName( this, widgetIdentity, taskListName );
 
 			// Display it 
-			DisplayTaskListName( taskListName );
+			DisplayTaskListName();
 
 			// Tell the widget
 			SendBroadcast( new WidgetIntent( AutoNagWidget.ListChangedAction ).SetWidgetId( widgetIdentity ) );
+
+			// This is usually all the user wishes to do, so get out of here
+			Finish();
 		}
 
 		/// <summary>
-		/// The user has supplied the name for a new task list.
+		/// The user has selected a list to rename. Allow the user to rename the lsit
+		/// Check that this is not a duplicate name and if unique update the table name in the database
+		/// Update any ListNamePersistence items that contain this name and then inform the AutoNagWidget of the change 
+		/// </summary>
+		/// <param name="changedItemKey">Changed item key.</param>
+		private void OnRenameList( string taskListName )
+		{
+			// Display the rename dialogue and process the new name
+			ShowEditTextDialogue( string.Format( "Rename <{0}>", taskListName ), taskListName, ( newName ) =>
+			{
+				// Check if the new name is valid
+				if ( TaskRepository.GetTaskTables().Contains( newName ) == true )
+				{
+					// A list with this name already exists
+					// Tell the user
+					ShowDialogue( new AlertDialog.Builder( this )
+						.SetMessage( string.Format( "Task list <{0}> already exists.", newName ) )
+						.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
+						.Create() );
+				}
+				else
+				{
+					// Attempt the rename
+					if ( TaskRepository.RenameTaskList( taskListName, newName ) == true )
+					{
+						// Get all the ListNamePersistence entries and update any with the old name
+						foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
+						{
+							if ( item.Value == taskListName )
+							{
+								ListNamePersistence.SetListName( this, item.Key, newName );
+							}
+						}
+
+						// Re-initialise any items showing the list names
+						InitialiseTaskListItem();
+
+						// Tell the widget
+						SendBroadcast( new WidgetIntent( AutoNagWidget.ListRenamedAction ).SetTaskListName( newName ) );
+					}
+				}
+			});
+		}
+
+		/// <summary>
+		/// The user wishes to create a new list.  Allow the user to enter a new namew.
 		/// If the list name is unique create the associated table
 		/// </summary>
-		private void ProcessCreateList()
+		private void OnCreateList( string taskListName )
 		{
-			string listName = textPreference.Text;
-			if ( TaskRepository.GetTaskTables().Contains( listName ) == true )
+			// Get new name from the user
+			ShowEditTextDialogue( "Create new list", "", ( listName ) =>
 			{
-				// A list with this name already exists
-				// Tell the user
-				new AlertDialog.Builder( this )
-					.SetMessage( string.Format( "Task list <{0}> already exists.", listName ) )
-					.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
-					.Show(); 
-			}
-			else
-			{
-				if ( TaskRepository.CreateTaskList( listName ) == true )
+				if ( TaskRepository.GetTaskTables().Contains( listName ) == true )
 				{
-					// Re-initialise any items showing the list names
-					InitialiseItemsShowingTaskListNames();
+					// A list with this name already exists
+					// Tell the user
+					ShowDialogue( new AlertDialog.Builder( this )
+						.SetMessage( string.Format( "Task list <{0}> already exists.", listName ) )
+						.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => {} )
+						.Create() ); 
 				}
-			}
+				else
+				{
+					if ( TaskRepository.CreateTaskList( listName ) == true )
+					{
+						// Re-initialise any items showing the list names
+						InitialiseTaskListItem();
+					}
+				}
+			});
+		}
 
-			// Set the default value for this item back to an empty string
-			// Must do this with notifications turned off
-			DeregisterListener();
-			textPreference.Text = "";
-			RegisterListener();
+		/// <summary>
+		/// Edit text changed delegate.
+		/// </summary>
+		private delegate void EditTextChangedDelegate( string listName );
+
+		/// <summary>
+		/// Shows the edit text dialogue.
+		/// </summary>
+		/// <param name="title">Title.</param>
+		/// <param name="editTextDefault">Edit text default.</param>
+		/// <param name="changedDelegate">Changed delegate.</param>
+		private void ShowEditTextDialogue( string title, string editTextDefault, EditTextChangedDelegate changedDelegate )
+		{
+			// Get the layout that contains our EditText and initialise its text
+			View contentView = LayoutInflater.Inflate( Resource.Layout.DialogueEditText, null );
+
+			EditText newNameEdit = contentView.FindViewById< EditText >( Resource.Id.textView );
+			newNameEdit.Text = editTextDefault;
+
+			// Display the keyboard when the dialogue is displayed. The EditText view will be given the focus by the framework, so just need to wait 
+			// for that to happen
+			newNameEdit.PostDelayed( () => 
+			{
+				( ( InputMethodManager )GetSystemService( Context.InputMethodService ) ).ShowSoftInput( newNameEdit, ShowFlags.Implicit );
+			}, 200 );
+
+			// Build the dialogue
+			ShowDialogue( new AlertDialog.Builder( this )
+				.SetTitle( title )
+				.SetView( contentView )
+				.SetPositiveButton( "OK", ( buttonSender, buttonEvents ) =>
+				{
+					// Check if the name has changed
+					if ( newNameEdit.Text != editTextDefault )
+					{
+						changedDelegate( newNameEdit.Text );
+					}
+				} )
+				.SetNegativeButton( "Cancel", ( buttonSender, buttonEvents ) => {} )
+				.Create() ); 
 		}
 
 		/// <summary>
 		/// The user has selected a task list to delete
 		/// Confirm the deletion with the user
 		/// </summary>
-		private void ProcessDeleteList( string taskListName )
+		private void OnDeleteList( string taskListName )
 		{
 			// Form a list of those widgets displaying the task list
-			List< int > widgetsDisplayingList = new List<int>();
+			List< int > widgetsDisplayingList = new List< int >();
 			foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
 			{
 				if ( item.Value == taskListName )
@@ -351,7 +322,7 @@ namespace AutoNag
 			}
 
 			// Display the dialogue
-			new AlertDialog.Builder( this )
+			ShowDialogue( new AlertDialog.Builder( this )
 				.SetMessage( message )
 				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
 				{
@@ -364,54 +335,79 @@ namespace AutoNag
 							ListNamePersistence.SetListName( this, widgetId, "" );
 						}
 
-						// Tell the widgets
-						if ( widgetsDisplayingList.Count > 0 )
-						{
-							SendBroadcast( new WidgetIntent( AutoNagWidget.ListDeletedAction ) );
-						}
-
 						// Re-initialise any lists showing the task list names
-						InitialiseItemsShowingTaskListNames();
+						InitialiseTaskListItem();
+
+						// Tell the widgets
+						SendBroadcast( new WidgetIntent( AutoNagWidget.ListDeletedAction ) );
 					}
 				} )
 				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => {} )
-				.Show(); 
+				.Create() ); 
+		}
 
-			// Set the default value for this item back to an empty string
-			// Must do this with notifications turned off
-			DeregisterListener();
-			deleteList.Value = "";
-			RegisterListener();
+		/// <summary>
+		/// Called when the user wishes to change the colour of a task list.
+		/// Display a dialogue showing all the possible colours
+		/// </summary>
+		/// <param name="taskListName">Task list name.</param>
+		private void OnColourList( string taskListName )
+		{
+			// Create a ColourAdapter to supply the colours to the list
+			ColourAdapter adapter = new ColourAdapter( this );
+
+			// Determine the index of the current colour
+			int index = adapter.GetPosition( ListColourPersistence.GetListColour( taskListName ).ToString() );
+
+			ShowDialogue( new AlertDialog.Builder( this )
+				.SetTitle( string.Format( "Select colour for <{0}>", taskListName ) )
+				.SetSingleChoiceItems( adapter, index, ( buttonSender, buttonEvents ) => {} )
+				.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => 
+				{
+					// Has the selection changed
+					int checkedItem = ( ( AlertDialog )buttonSender ).ListView.CheckedItemPosition;
+					if ( checkedItem != index )
+					{
+						ListColourPersistence.SetListColour( taskListName, ListColourHelper.StringToColourEnum( adapter.GetItem( checkedItem ) ) );
+
+						// Re-initialise any lists showing the task list names
+						InitialiseTaskListItem();
+
+						// Tell the widget
+						SendBroadcast( new WidgetIntent( AutoNagWidget.ListColourAction ).SetTaskListName( taskListName ) );
+					}
+				} )
+				.Create() ); 
 		}
 
 		/// <summary>
 		/// Display the task list being displayed by the widget
 		/// </summary>
-		/// <param name="taskListName">Task list name.</param>
-		private void DisplayTaskListName( string taskListName )
+		private void DisplayTaskListName()
 		{
-			if ( taskListName.Length == 0 )
+			currentListName = ListNamePersistence.GetListName( this, widgetIdentity );
+
+			if ( currentListName.Length == 0 )
 			{
-				taskListName = "None";
+				currentListPreference.ColourResourceProperty = ListColourHelper.NoTaskListColourProperty;
+				currentListPreference.Title = "None";
 			}
-
-			taskList.Title = string.Format( "{0} <{1}>", GetString( Resource.String.listSettingsTitle ), taskListName );
+			else
+			{
+				currentListPreference.ColourResourceProperty = ListColourHelper.GetColourResource( currentListName );
+				currentListPreference.Title = currentListName;
+			}
 		}
 
 		/// <summary>
-		/// Registers the listener.
+		/// Shows the dialogue and records the dialogue being shown in order to dismiss it.
 		/// </summary>
-		private void RegisterListener()
+		/// <param name="dialogueToShow">Dialogue to show.</param>
+		private void ShowDialogue( Dialog dialogueToShow )
 		{
-			PreferenceManager.GetDefaultSharedPreferences( this ).RegisterOnSharedPreferenceChangeListener( this );
-		}
-
-		/// <summary>
-		/// Deregisters the listener.
-		/// </summary>
-		private void DeregisterListener()
-		{
-			PreferenceManager.GetDefaultSharedPreferences( this ).UnregisterOnSharedPreferenceChangeListener( this );
+			dialogueBeingShown = dialogueToShow;
+			dialogueToShow.Show();
+			dialogueToShow = null;
 		}
 
 		// 
@@ -424,29 +420,44 @@ namespace AutoNag
 		private int widgetIdentity = 0;
 
 		/// <summary>
-		/// The task list preference item
+		/// The curren tlist name preference item
 		/// </summary>
-		private ListPreference taskList = null;
+		private CustomPreference currentListPreference = null;
 
 		/// <summary>
-		/// The list rename preference screen.
+		/// The name of the current list.
 		/// </summary>
-		private PreferenceScreen renameScreen = null;
+		private string currentListName = "";
 
 		/// <summary>
-		/// The text preference.
+		/// The list rename preference.
 		/// </summary>
-		private EditTextPreference textPreference = null;
+		private ListPreference renamePreference = null;
+
+		/// <summary>
+		/// The create list preference.
+		/// </summary>
+		private CustomPreference createPreference = null;
 
 		/// <summary>
 		/// The delete list.
 		/// </summary>
-		private ListPreference deleteList = null;
+		private ListPreference deletePreference = null;
 
 		/// <summary>
-		/// The prefix for all rename items
+		/// The change colour preference
 		/// </summary>
-		private const string RenameKeyPrefix = "Rename";
+		private ListPreference colourPreference = null;
+
+		/// <summary>
+		/// The available lists category.
+		/// </summary>
+		private PreferenceCategory availableListsCategory = null;
+
+		/// <summary>
+		/// Keep track of any dialogues being shown so that they can be dismissed on configuration change
+		/// </summary>
+		private Dialog dialogueBeingShown = null;
 	}
 }
 

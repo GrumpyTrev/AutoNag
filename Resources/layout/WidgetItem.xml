@@ -9,7 +9,7 @@
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/NotDoneBackground"
+        android:background="@drawable/NotDoneBackgroundYellow"
         android:layout_alignTop="@+id/taskNameLine"
         android:layout_alignBottom="@+id/memoLine" />
     <LinearLayout

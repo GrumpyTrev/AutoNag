@@ -62,7 +62,6 @@ namespace AutoNag
 			WidgetIntent wrappedIntent = new WidgetIntent( alarmIntent );
 
 			int taskID = wrappedIntent.TaskIdentityProperty;
-			string taskName = wrappedIntent.TaskNameProperty;
 			string taskListName = wrappedIntent.TaskListNameProperty;
 			int requestCode = WidgetIntent.GetRequestCode( taskID, taskListName );
 
@@ -81,7 +80,7 @@ namespace AutoNag
 				0 ) ;
 
 			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder( alarmContext )
-				.SetContentTitle( taskName )
+				.SetContentTitle( wrappedIntent.TaskNameProperty )
 				.SetContentText( "Click to view" )
 				.SetSmallIcon( Resource.Drawable.icon )
 				.SetContentIntent( viewIntent )

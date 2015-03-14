@@ -257,8 +257,7 @@ namespace AutoNag
 				// Display the keyboard after the view has got focus - 200ms delay here
 				nameTextEdit.PostDelayed( () =>
 				{
-					InputMethodManager manager = ( InputMethodManager )GetSystemService( Context.InputMethodService );
-					manager.ShowSoftInput( nameTextEdit, ShowFlags.Implicit );
+					( ( InputMethodManager )GetSystemService( Context.InputMethodService ) ).ShowSoftInput( nameTextEdit, ShowFlags.Implicit );
 				}, 200 );
 			}	
 		}
@@ -294,8 +293,6 @@ namespace AutoNag
 			// Get the task identity and if it is non-zero load it.
 			int taskID = wrappedIntent.TaskIdentityProperty;
 
-			Android.Util.Log.Debug( "CarryOutIntentActions", string.Format( "Task id {0}, table {1}", taskID, taskListName ) );
-
 			if ( taskID > 0 ) 
 			{
 				task = TaskRepository.GetTask( taskListName, taskID );
@@ -320,7 +317,6 @@ namespace AutoNag
 					( ( NotificationManager )ApplicationContext.GetSystemService( Context.NotificationService ) ).Cancel( WidgetIntent.GetRequestCode( taskID, taskListName ) );
 				}
 			}
-
 		}
 
 		/// <summary>
@@ -407,14 +403,7 @@ namespace AutoNag
 		/// </summary>
 		private void ShowPriorityImage()
 		{
-			if ( displayedPriority == 0 )
-			{
-				priorityImage.SetImageResource( Resource.Drawable.StarOff );
-			}
-			else
-			{
-				priorityImage.SetImageResource( Resource.Drawable.StarOn );
-			}
+			priorityImage.SetImageResource( ( displayedPriority == 0 ) ? Resource.Drawable.StarOff :  Resource.Drawable.StarOn );
 		}
 
 		/// <summary>
@@ -422,14 +411,7 @@ namespace AutoNag
 		/// </summary>
 		private void ShowNotificationImage()
 		{
-			if ( displayedNotification == false )
-			{
-				notificationImage.SetImageResource( Resource.Drawable.NotificationOff ); 
-			}
-			else
-			{
-				notificationImage.SetImageResource( Resource.Drawable.NotificationOn ); 
-			}
+			notificationImage.SetImageResource( ( displayedNotification == false ) ? Resource.Drawable.NotificationOff : Resource.Drawable.NotificationOn ); 
 		}
 
 		/// <summary>
@@ -437,14 +419,7 @@ namespace AutoNag
 		/// </summary>
 		private void DisplayDueDate()
 		{
-			if ( displayedDueDate == DateTime.MinValue )
-			{
-				dueDateDisplay.Text = "";
-			}
-			else
-			{
-				dueDateDisplay.Text = displayedDueDate.ToString( DisplayDueDateFormat );
-			}
+			dueDateDisplay.Text = ( displayedDueDate == DateTime.MinValue ) ? "" : displayedDueDate.ToString( DisplayDueDateFormat );
 		}
 
 		/// <summary>

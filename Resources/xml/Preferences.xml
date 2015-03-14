@@ -2,36 +2,38 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
 	android:key="@string/settingsKey"
 	android:persistent="false" >
-    <Preference
-        android:title="@string/helpSettingsTitle"
-        android:summary="@string/helpSettingsSummary">
-        <intent
-        	android:targetPackage="AutoNag.AutoNag"
-            android:targetClass="autonag.HelpDialogueActivity" />
-    </Preference>
 	<PreferenceCategory
-		android:title="@string/widgetSpecificCategory" >
-	    <ListPreference
-	    	android:key="@string/listSettingsKey"
-	        android:title="@string/listSettingsTitle"
-	        android:summary="@string/listSettingsSummary">
-		</ListPreference>
+		android:title="@string/widgetListCategory">
+		<autonag.CustomPreference
+			android:key="@string/widgetCurrentListKey"
+	        android:title="" />
 	</PreferenceCategory>
 	<PreferenceCategory
+		android:title="@string/widgetSelectListCategory"
+		android:key="@string/widgetSelectListCategoryKey" />
+	<PreferenceCategory
 		android:title="@string/listManagementCategory" >
-		<PreferenceScreen
+		<autonag.ListPreference
 			android:key="@string/renameScreenKey"
-	        android:title="@string/renameScreenTitle"
-			android:persistent="false" >
-		</PreferenceScreen>
-		<EditTextPreference
+	        android:title="@string/renameScreenTitle" />
+		<autonag.CustomPreference
 			android:key="@string/createListKey"
-	        android:title="@string/createListTitle"
-	        android:dialogTitle="@string/createListDialogTitle" >
-		</EditTextPreference>
-		<ListPreference
+	        android:title="@string/createListTitle" />
+		<autonag.ListPreference
 			android:key="@string/deleteListKey"
-	        android:title="@string/deleteListTitle" >
-		</ListPreference>
+	        android:title="@string/deleteListTitle" />
+		<autonag.ListPreference
+			android:key="@string/colourListKey"
+	        android:title="@string/colourListTitle" />
+	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="@string/helpAboutCategory" >
+	    <Preference
+	        android:title="@string/helpSettingsTitle"
+	        android:summary="@string/helpSettingsSummary" >
+	        <intent
+	        	android:targetPackage="AutoNag.AutoNag"
+	            android:targetClass="autonag.HelpDialogueActivity" />
+	    </Preference>
 	</PreferenceCategory>
 </PreferenceScreen>

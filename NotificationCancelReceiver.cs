@@ -50,6 +50,12 @@ namespace AutoNag
 	/// </summary>
 	public class NotificationCancelReceiver : BroadcastReceiver
 	{
+		/// <summary>
+		/// This method is called when the BroadcastReceiver is receiving an Intent
+		///  broadcast.
+		/// </summary>
+		/// <param name="context">The Context in which the receiver is running.</param>
+		/// <param name="intent">The Intent being received.</param>
 		public override void OnReceive( Context cancelContext, Intent cancelIntent )
 		{
 			// Access the task and task list name associated with the intent and turn off the notification

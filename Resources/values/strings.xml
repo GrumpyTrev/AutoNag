@@ -19,7 +19,8 @@
     <string name="noData">No data</string>
     <string name="helpTitle">About AutoNag</string>
     <string name="settingsKey">settings</string>
-    <string name="helpSettingsTitle">AutoNag version 1.2</string>
+    <string name="helpAboutCategory">About</string>
+    <string name="helpSettingsTitle">AutoNag version 2.0</string>
     <string name="helpSettingsSummary">Display details</string>
     <string name="listSettingsKey">displayedList</string>
     <string name="listSettingsTitle">Currently showing</string>
@@ -34,6 +35,11 @@
     <string name="deleteListKey">deleteScreen</string>
     <string name="deleteListTitle">Delete list</string>
     <string name="deleteListDialogTitle">Delete list</string>
-    <string name="widgetSpecificCategory">Widget settings</string>
+    <string name="widgetListCategory">Current list</string>
+    <string name="widgetCurrentListKey">currentList</string>
+    <string name="widgetSelectListCategory">Available lists</string>
+    <string name="widgetSelectListCategoryKey">availableLists</string>
     <string name="listManagementCategory">List management</string>
+    <string name="colourListKey">colourScreen</string>
+    <string name="colourListTitle">Change list colour</string>
 </resources>

@@ -1,8 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <resources>
 	<color name="itemLeftBorder">#FF7F00</color> <!-- Orange -->
-<!--	<color name="itemNormalBackground">#EFEFEF</color>  --><!-- Off White -->
-	<color name="itemNormalBackground">#FFFF7F</color> <!-- Pale Yellow -->
+	<color name="itemYellowBackground">#FFFF7F</color>
+	<color name="itemGreenBackground">#7FFF7F</color>
+	<color name="itemBlueBackground">#7FFFFF</color>
+	<color name="itemPinkBackground">#FFB6C1</color>
+	<color name="itemBeigeBackground">#F5F5DC</color>
 	<color name="itemDoneBackground">#E0E0E0</color> <!-- Grey -->
 	<color name="taskNormalText">#191919</color> <!-- 90% Black -->
 	<color name="taskDoneText">#666666</color> <!-- 60% Black -->

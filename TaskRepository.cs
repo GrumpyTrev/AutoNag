@@ -131,6 +131,36 @@ namespace AutoNag
 			return ( InstanceProperty.sqliteDatabase.DeleteList( listName ) == SQLiteOk );
 		}
 
+		/// <summary>
+		/// Gets all of the the list colour entries
+		/// </summary>
+		/// <returns>The tasks stored in a IEnumerable<Task></returns>
+		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
+		public static IDictionary< string, ListColourEnum > GetListColours()
+		{
+			return InstanceProperty.sqliteDatabase.GetListColours();
+		}
+
+		/// <summary>
+		/// Adds the list colour entry to the ListColourTableName
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		/// <param name="colour">Colour.</param>
+		public static void AddListColour( string listName, ListColourEnum colour )
+		{
+			InstanceProperty.sqliteDatabase.AddListColour( listName, colour );
+		}
+
+		/// <summary>
+		/// Updates an existing the list colour entry
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		/// <param name="colour">Colour.</param>
+		public static void UpdateListColour( string listName, ListColourEnum colour )
+		{
+			InstanceProperty.sqliteDatabase.UpdateListColour( listName, colour );
+		}
+
 		//
 		// Private methods
 		// 

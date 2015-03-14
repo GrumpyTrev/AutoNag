@@ -115,7 +115,11 @@ namespace AutoNag
 				// Extract the table names from the reader and add to the list
 				while ( reader.Read() == true )
 				{
-					tableList.Add( reader.GetString( 0 ) );
+					string tableName = reader.GetString( 0 );
+					if ( tableName != ListColourTableName )
+					{
+						tableList.Add( tableName );
+					}
 				}
 
 				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
@@ -140,8 +144,6 @@ namespace AutoNag
 			{
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
-
-				SqliteCommand command = connection.CreateCommand();
 
 				// Get the order clause and add it to the query if it is defined
 				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}]{1}", taskListName, GetSortOrderClause( sortOrder ) ), 
@@ -213,11 +215,7 @@ namespace AutoNag
 				command.Parameters.AddWithValue( null, item.Priority );
 
 				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
-				DateTime dueDateToStore = item.DueDate;
-				if ( item.DueDate == DateTime.MinValue )
-				{
-					dueDateToStore = DateTime.MaxValue;
-				}
+				DateTime dueDateToStore = ( item.DueDate == DateTime.MinValue ) ? DateTime.MaxValue : item.DueDate;
 				command.Parameters.AddWithValue( null, dueDateToStore.ToString( DueDateFormat ) );
 
 				command.Parameters.AddWithValue( null, item.ModifiedDate.ToString( ModifiedDateFormat ) );
@@ -242,8 +240,7 @@ namespace AutoNag
 				// If this is a new item then retrieve the new index
 				if ( item.ID == 0 )
 				{
-					command.CommandText = string.Format(
-						"SELECT [Identity] FROM [{0}] WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [{0}] )", taskListName );
+					command.CommandText = string.Format( "SELECT [Identity] FROM [{0}] WHERE [Identity] IN ( SELECT MAX([Identity]) FROM [{0}] )", taskListName );
 
 					SqliteDataReader reader = command.ExecuteReader();
 					if ( reader.Read() == true )
@@ -269,6 +266,61 @@ namespace AutoNag
 		public int DeleteItem( string taskListName, int id ) 
 		{
 			return ExecuteSimpleNonQuery( string.Format( "DELETE FROM [{0}] WHERE [Identity] = {1}", taskListName, id ) );
+		}
+
+		/// <summary>
+		/// Gets all of the the list colour entries
+		/// </summary>
+		/// <returns>The tasks stored in a IEnumerable<Task></returns>
+		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
+		public IDictionary< string, ListColourEnum > GetListColours()
+		{
+			Dictionary< string, ListColourEnum >colourList = new Dictionary< string, ListColourEnum >();
+
+			// Create the ListColourTableName if it does not exist
+			ExecuteSimpleNonQuery( string.Format( "CREATE TABLE IF NOT EXISTS [{0}] ( ListName TEXT PRIMARY KEY ASC, Colour TEXT )", ListColourTableName ) );
+
+			lock( locker ) 
+			{
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
+
+				// Get the contents of the ListColourTableName
+				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}]", ListColourTableName ), connection ).ExecuteReader();
+
+				// Extract the list names and colours from the reader and add to the dictionary
+				while ( reader.Read() == true )
+				{
+					colourList[ reader.GetString( 0 ) ] = ListColourHelper.StringToColourEnum( reader.GetString( 1 ) );
+				}
+
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close ();
+			}
+
+			return colourList;
+		}
+
+		/// <summary>
+		/// Adds the list colour entry to the ListColourTableName
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		/// <param name="colour">Colour.</param>
+		public void AddListColour( string listName, ListColourEnum colour )
+		{
+			ExecuteSimpleNonQuery( string.Format( "INSERT INTO [{0}] ( [ListName], [Colour] ) VALUES ( '{1}', '{2}' )", ListColourTableName, listName, colour ) );
+		}
+
+		/// <summary>
+		/// Updates an existing the list colour entry
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		/// <param name="colour">Colour.</param>
+		public void UpdateListColour( string listName, ListColourEnum colour )
+		{
+			ExecuteSimpleNonQuery( string.Format( "UPDATE [{0}] SET [Colour] = '{1}' WHERE [ListName] = '{2}'", ListColourTableName, colour, listName ) );
 		}
 
 		//
@@ -309,19 +361,20 @@ namespace AutoNag
 		{
 			Task toTask = new Task();
 
-			toTask.ID =  Convert.ToInt32( reader[ "Identity" ] );
-			toTask.Name = reader ["Name"].ToString();
-			toTask.Notes = reader ["Notes"].ToString();
-			toTask.Done = Convert.ToBoolean( reader ["Done"] );
-			toTask.NotificationRequired = Convert.ToBoolean( reader ["NotificationRequired"] );
-			toTask.Priority	= Convert.ToInt32( reader[ "Priority" ] );
+			toTask.ID = reader.GetInt32( 0 );
+			toTask.Name = reader.GetString( 1 );
+			toTask.Notes = reader.GetString( 2 );
+			toTask.Done = reader.GetBoolean( 3 );
+			toTask.NotificationRequired = reader.GetBoolean( 4 );
+			toTask.Priority	= reader.GetInt32( 5 );
 
 			// Allow the DueTime to be in either yyyyMMddHHmm or for compatibility yyyyMMdd
 			DateTime dueDateReadIn;
+			string dateTimeString = reader.GetString( 6 );
 
-			if ( ( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), DueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
-				System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) &&
-				( DateTime.TryParseExact( reader[ "DueDate" ].ToString(), CompatibleDueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+			if ( ( DateTime.TryParseExact( dateTimeString, DueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+					System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) &&
+				( DateTime.TryParseExact( dateTimeString, CompatibleDueDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
 					System.Globalization.DateTimeStyles.None, out dueDateReadIn ) == false ) )
 			{
 				dueDateReadIn = DateTime.MinValue;
@@ -340,7 +393,7 @@ namespace AutoNag
 			// The format of the ModifiedDate is fixed
 			DateTime modifiedDateReadIn;
 
-			if ( DateTime.TryParseExact( reader[ "ModifiedDate" ].ToString(), ModifiedDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
+			if ( DateTime.TryParseExact( reader.GetString( 7 ), ModifiedDateFormat, System.Globalization.CultureInfo.InvariantCulture, 
 				System.Globalization.DateTimeStyles.None, out modifiedDateReadIn ) == false )
 			{
 				modifiedDateReadIn = DateTime.MinValue;
@@ -414,5 +467,10 @@ namespace AutoNag
 		private const string DueDateFormat = "yyyyMMddHHmm";
 		private const string CompatibleDueDateFormat = "yyyyMMdd";
 		private const string ModifiedDateFormat = "yyyyMMddHHmmss";
+
+		/// <summary>
+		/// The name of the list colour table.
+		/// </summary>
+		private const string ListColourTableName = "ListColour.Table";
 	}
 }
