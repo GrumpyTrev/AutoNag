@@ -9,19 +9,17 @@ Each note consists of a Task Name and a Note field. The Note field can be of any
 The note can be given a Priority, a Due Date, a Notification Time, and can be marked as Done. <br>
 The display of notes on the Widget can be sorted by any combination of Done, Priority and Due Date.<br>
  
-<h3>Version 2.0 - New features and bug fixes</h3>
-
-1) AutoNag now supports multiple list of notes. The name of the list currently being displayed on an Home Screen widget is shown at the top of the widget.
-   Clicking on the list name displays the AutoNag settings screen. This screen allows the currently displayed list to be selected, and allows lists to be 
-   created, deleted, renamed and coloured. Any number of AutoNag widgets can be displayed on the Home Screens. Each widget can display different lists, or the
-   same list<br>
+<h3>Support for multiple notes lists</h3>
+As of Version 2.0 AutoNag supports multiple note lists.<br>
+The name of the list currently being displayed on a Widget is shown at the top together with the number of entries in the list.<br>
+Clicking on the list name displays the AutoNag settings screen. This screen allows the list displayed on the Widget to be selected, and allows lists to be 
+created, deleted, renamed and coloured.<br>
+Any number of AutoNag Widgets can be displayed. Each widget can display different lists, or the same list<br>
 
 <h3>Version 2.0 - Known Problems and Missing Features</h3>
-
 1) Showing combined lists. Now that multiple lists are possible, the ability to display all the lists in a single widget would be nice.<br>
 
 <h3>Licensing</h3>
-
 Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 
 files  (the "Software"), to  deal in  the Software without  restriction, including without limitation  the rights to  use, copy, 
 modify,  merge, publish, distribute,  sublicense, and/or sell  copies of  the Software,  and to permit persons to whom the Software 

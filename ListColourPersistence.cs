@@ -115,16 +115,19 @@ namespace AutoNag
 		/// </summary>
 		private static void LoadCollection()
 		{
-			// Has the collection been loaded yet?
-			if ( listColourCollection == null )
+			lock( locker ) 
 			{
-				// Create the collection and load it from the database
-				listColourCollection = new Dictionary<string, ListColourEnum>();
-				IDictionary< string, ListColourEnum > colourEntries = TaskRepository.GetListColours();
-
-				foreach ( KeyValuePair< string, ListColourEnum > pair in colourEntries )
+				// Has the collection been loaded yet?
+				if ( listColourCollection == null )
 				{
-					listColourCollection.Add( pair.Key, pair.Value );
+					// Create the collection and load it from the database
+					listColourCollection = new Dictionary<string, ListColourEnum>();
+					IDictionary< string, ListColourEnum > colourEntries = TaskRepository.GetListColours();
+
+					foreach ( KeyValuePair< string, ListColourEnum > pair in colourEntries )
+					{
+						listColourCollection.Add( pair.Key, pair.Value );
+					}
 				}
 			}
 		}
@@ -137,6 +140,11 @@ namespace AutoNag
 		/// The list colour collection.
 		/// </summary>
 		private static Dictionary< string, ListColourEnum > listColourCollection = null;
+
+		/// <summary>
+		/// Static lock object to protect loading the collection
+		/// </summary>
+		private static object locker = new object ();
 	}
 }
 
