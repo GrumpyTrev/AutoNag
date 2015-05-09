@@ -160,6 +160,16 @@ namespace AutoNag
 			set;
 		}
 
+		/// <summary>
+		/// Gets or sets the name of the list.
+		/// </summary>
+		/// <value>The name of the list.</value>
+		public string ListName
+		{
+			get;
+			set;
+		}
+
 		//
 		// Private data
 		//

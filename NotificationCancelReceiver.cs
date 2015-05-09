@@ -75,7 +75,7 @@ namespace AutoNag
 						cancelTask.NotificationRequired = false;
 						cancelTask.DueDate = new DateTime( cancelTask.DueDate.Year, cancelTask.DueDate.Month, cancelTask.DueDate.Day, 0, 0, 0 );
 
-						TaskRepository.SaveTask( taskListName, cancelTask );
+						TaskRepository.SaveTask( cancelTask );
 
 						// Refresh the widgets showing this task list
 						cancelContext.SendBroadcast( new WidgetIntent( AutoNagWidget.UpdatedAction ).SetTaskListName( taskListName ) );

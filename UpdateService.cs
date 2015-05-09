@@ -49,6 +49,7 @@ using Android.Widget;
 using Android.Views;
 
 using Android.Util;
+using System.Text;
 
 namespace AutoNag
 {
@@ -140,7 +141,7 @@ namespace AutoNag
 			else
 			{
 				// Set the background resource according to the list name
-				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetDrawableResource( taskListName ) );
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetDrawableResource( taskToDisplay.ListName ) );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Invisible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskNormalText ) );
 			}
@@ -173,9 +174,9 @@ namespace AutoNag
 				}
 			}
 
-			// Next, set a fill-intent, which will be used to fill in the pending intent template
-			// that is set on the collection view in StackWidgetProvider.
-			view.SetOnClickFillInIntent( Resource.Id.overlay, new WidgetIntent().SetTaskIdentity( taskToDisplay.ID ) );
+			// Next, set a fill-intent, which will be used to fill in the pending intent template that is set on the collection view in AutoNagWidget.
+			// Add the task id and the task list name
+			view.SetOnClickFillInIntent( Resource.Id.overlay, new WidgetIntent().SetTaskIdentity( taskToDisplay.ID ).SetTaskListName( taskToDisplay.ListName ) );
 
 			return view;
 		}
@@ -244,12 +245,26 @@ namespace AutoNag
 			tasks.Clear();
 
 			// Get the current task list name associated with this widget (may be different from when this factory was created)
-			taskListName = ListNamePersistence.GetListName( savedContext, widgetIdentity );
+			string taskListName = ListNamePersistence.GetListName( savedContext, widgetIdentity );
 
 			if ( taskListName.Length > 0 )
 			{
+				List< string > listNames = null;
+
+				// Check for the special combined list name
+				if ( taskListName == SettingsActivity.CombinedListName )
+				{
+					// Get all of the list names
+					listNames = ( List< string > )TaskRepository.GetTaskTables();
+				}
+				else
+				{
+					// Use the single list name
+					listNames = new List<string>{ taskListName };
+				}
+
 				// Load the tasks with optional sort order
-				tasks = TaskRepository.GetTasks( taskListName, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
+				tasks = TaskRepository.GetTasks( listNames, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
 
 				// Save the count of items to be displayed on the widget
 				TaskCountPersistence.SetTaskCount( savedContext, widgetIdentity, tasks.Count );
@@ -267,11 +282,6 @@ namespace AutoNag
 		/// The widget identity.
 		/// </summary>
 		private readonly int widgetIdentity = 0;
-
-		/// <summary>
-		/// The name of the task list being displayed by the widget
-		/// </summary>
-		private string taskListName = "";
 
 		/// <summary>
 		/// The tasks.

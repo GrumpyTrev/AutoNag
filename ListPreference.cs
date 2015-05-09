@@ -69,6 +69,63 @@ namespace AutoNag
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="AutoNag.ListPreference"/> class.
+		/// </summary>
+		/// <param name="viewContext">View context.</param>
+		/// <param name="titleString">Title string.</param>
+		/// <param name="selectionDelegate">Selection delegate.</param>
+		public ListPreference( Context viewContext, string titleString, ListSelectedDelegate selectionDelegate ) : base( viewContext, null )
+		{
+			adapter = new ListNameAdapter( Context );
+			Title = titleString;
+			SelectedProperty = selectionDelegate;
+		}
+
+		/// <summary>
+		/// Creates the dialogue with a default style
+		/// </summary>
+		/// <returns>The dialogue.</returns>
+		public Dialog CreateDialogue()
+		{
+			return CreateDialogue( Android.Resource.Style.ThemeDeviceDefault );
+		}
+
+		/// <summary>
+		/// Create the dialogue with a given style
+		/// </summary>
+		public Dialog CreateDialogue( int style )
+		{
+			// Get the view layout to display in the dialogue
+			View dialogueView = ( ( LayoutInflater  )Context.GetSystemService( Context.LayoutInflaterService ) ).Inflate( Resource.Layout.ListName, null );
+
+			// Get the ListView and set its adapter and click handler
+			ListView list = dialogueView.FindViewById< ListView >( Resource.Id.list );
+
+			list.Adapter = adapter;
+			list.ItemClick += ( object sender, AdapterView.ItemClickEventArgs e ) => 
+			{
+				// Report the list that has been selected
+				if ( listener != null )
+				{
+					listener( ( string )list.GetItemAtPosition( e.Position ) );
+				}
+			};
+
+			theDialog = new Dialog( Context, style );
+			theDialog.SetTitle( Title );
+			theDialog.SetContentView( dialogueView );
+
+			// If the dialogue has a standard title bar then make it multiline
+			TextView titleView = theDialog.FindViewById< TextView >( Android.Resource.Id.Title );
+			if ( titleView != null )
+			{
+				titleView.SetSingleLine( false );
+			}
+
+			return theDialog;
+		}
+
+		/// <summary>
 		/// Sets the selected property.
 		/// </summary>
 		/// <value>The selected property.</value>
@@ -116,7 +173,7 @@ namespace AutoNag
 		/// </summary>
 		protected override void OnClick()
 		{
-			ShowDialogue();
+			CreateDialogue().Show();
 		}
 
 		/// <summary>
@@ -149,41 +206,13 @@ namespace AutoNag
 			// Show the dialogue if it was being shown before
 			if ( ( ( Bundle )state ).GetBoolean( Key ) == true )
 			{
-				ShowDialogue();
+				CreateDialogue().Show();
 			}
 		}
 
 		//
 		// Private methods
 		//
-
-		/// <summary>
-		/// Shows the dialogue.
-		/// </summary>
-		private void ShowDialogue()
-		{
-			// Get the view layout to display in the dialogue
-			View dialogueView = ( ( LayoutInflater  )Context.GetSystemService( Context.LayoutInflaterService ) ).Inflate( Resource.Layout.ListName, null );
-
-			// Get the ListView and set its adpater and click handler
-			ListView list = dialogueView.FindViewById< ListView >( Resource.Id.list );
-
-			list.Adapter = adapter;
-			list.ItemClick += ( object sender, AdapterView.ItemClickEventArgs e ) => 
-			{
-				// Report the list that has been selected
-				if ( listener != null )
-				{
-					listener( ( string )list.GetItemAtPosition( e.Position ) );
-				}
-			};
-
-			theDialog = new Dialog( Context, Android.Resource.Style.ThemeDeviceDefault );
-			theDialog.SetTitle( Title );
-			theDialog.SetContentView( dialogueView );
-
-			theDialog.Show();
-		}
 
 		//
 		// Private data

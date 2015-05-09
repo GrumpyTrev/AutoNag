@@ -4,11 +4,18 @@
     <item android:id="@+id/saveTask"
           android:icon="@android:drawable/ic_menu_save"
           android:title="Save task"
-          android:visible="false"
           android:showAsAction="ifRoom" />
     <item android:id="@+id/deleteTask"
           android:icon="@android:drawable/ic_menu_delete"
           android:title="Delete task"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/copyTask"
+          android:icon="@drawable/ic_menu_copy"
+          android:title="Copy task"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/moveTask"
+          android:icon="@drawable/ic_menu_set_as"
+          android:title="Move task"
           android:showAsAction="ifRoom" />
 </menu>
 

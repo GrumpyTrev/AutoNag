@@ -62,14 +62,11 @@ namespace AutoNag
 		{
 			if ( intent.Action == Intent.ActionBootCompleted )
 			{
-				foreach ( string taskListName in TaskRepository.GetTaskTables() )
+				foreach ( Task currentTask in TaskRepository.GetTasks( TaskRepository.GetTaskTables(), null ) )
 				{
-					foreach ( Task currentTask in TaskRepository.GetTasks( taskListName, null ) )
+					if ( currentTask.NotificationRequired == true )
 					{
-						if ( currentTask.NotificationRequired == true )
-						{
-							AlarmInterface.SetAlarm( taskListName, currentTask.ID, currentTask.Name, currentTask.DueDate, context );
-						}
+						AlarmInterface.SetAlarm( currentTask.ListName, currentTask.ID, currentTask.Name, currentTask.DueDate, context );
 					}
 				}
 			}

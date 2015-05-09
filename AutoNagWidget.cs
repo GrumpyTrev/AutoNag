@@ -78,7 +78,8 @@ namespace AutoNag
 					// Notify any widgets associated with task list to update their data
 					foreach ( int notificationWidgetId in appWidgetIds )
 					{
-						if ( ListNamePersistence.GetListName( context, notificationWidgetId ) == taskListName )
+						string displayedList =  ListNamePersistence.GetListName( context, notificationWidgetId );
+						if ( ( displayedList == taskListName ) || ( displayedList == SettingsActivity.CombinedListName ) )
 						{
 							appManager.NotifyAppWidgetViewDataChanged( notificationWidgetId, Resource.Id.listView );
 						}
@@ -217,11 +218,11 @@ namespace AutoNag
 			// Set up an intent template for the list view items to activate the TaskDetailsScreen activity
 			// N.B. Use a unique 'requestCode' value for intents that activate the same activity to differentiate between them.
 			// These must be unique for all PendingIntents that have the same type i.e. typeof( TaskDetailsScreen ). As it
-			// is used for TaskID elsewhere don't use any positive integers
+			// is used for TaskID elsewhere don't use any positive integers.
+			// Don't include the list name as that is set when the item is selected
 			views.SetPendingIntentTemplate( Resource.Id.listView, 
 				PendingIntent.GetActivity( widgetContext, WidgetIntent.GetRequestCode( widgetId, -1 ), 
-					new WidgetIntent( widgetContext, typeof( TaskDetailsScreen ) ).SetWidgetId( widgetId ).SetTaskListName( taskListName ),
-				PendingIntentFlags.UpdateCurrent ) );
+					new WidgetIntent( widgetContext, typeof( TaskDetailsScreen ) ).SetWidgetId( widgetId ),	PendingIntentFlags.UpdateCurrent ) );
 
 			// If a task list is being shown then enable the click action for the 'new' icon and display the table name
 			if ( taskListName.Length > 0 )

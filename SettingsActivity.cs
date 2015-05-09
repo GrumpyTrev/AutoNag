@@ -69,6 +69,11 @@ namespace AutoNag
 		{
 		}
 
+		/// <summary>
+		/// The name of the combined list.
+		/// </summary>
+		public const string CombinedListName = "Combined list";
+
 		//
 		// Protected methods
 		//
@@ -124,7 +129,11 @@ namespace AutoNag
 
 			if ( dialogueBeingShown != null )
 			{
-				dialogueBeingShown.Dismiss();
+				if ( dialogueBeingShown.IsShowing == true )
+				{
+					dialogueBeingShown.Dismiss();
+				}
+
 				dialogueBeingShown = null;
 			}
 		}
@@ -144,15 +153,19 @@ namespace AutoNag
 			// Remove all existing entries from the available Lists Category
 			availableListsCategory.RemoveAll();
 		
+			// Add an entry for each task table except for the currently selected list
 			foreach ( string listName in TaskRepository.GetTaskTables() )
 			{
-				// Don't show the selected list
 				if ( listName != currentListName )
 				{
 					availableListsCategory.AddPreference( new CustomPreference( this, OnSelectList, ListColourHelper.GetColourResource( listName ), listName ) );
 				}
 			}
 
+			// Add an entry for the combined list
+			availableListsCategory.AddPreference( new CustomPreference( this, OnSelectList, ListColourHelper.GetColourResource( CombinedListName ), CombinedListName ) );
+
+			// Force the delete, colour and rename lists to initialise themselves
 			deletePreference.NotifyDataSetChanged();
 			colourPreference.NotifyDataSetChanged();
 			renamePreference.NotifyDataSetChanged();
@@ -407,7 +420,6 @@ namespace AutoNag
 		{
 			dialogueBeingShown = dialogueToShow;
 			dialogueToShow.Show();
-			dialogueToShow = null;
 		}
 
 		// 

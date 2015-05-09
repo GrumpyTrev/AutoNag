@@ -120,7 +120,6 @@
     <AndroidResource Include="Resources\layout\DueDateSelection.xml" />
     <AndroidResource Include="Resources\layout-land\DueDateSelection.xml" />
     <AndroidResource Include="Resources\xml\Preferences.xml" />
-    <AndroidResource Include="Resources\menu\TestMenu.xml" />
     <AndroidResource Include="Resources\drawable\NotDoneBackgroundYellow.xml" />
     <AndroidResource Include="Resources\drawable\NotDoneBackgroundGreen.xml" />
     <AndroidResource Include="Resources\drawable\ItemLeftBorder.xml" />
@@ -133,6 +132,8 @@
     <AndroidResource Include="Resources\layout\DialogueEditText.axml" />
     <AndroidResource Include="Resources\drawable\NotDoneBackgroundPink.xml" />
     <AndroidResource Include="Resources\drawable\NotDoneBackgroundBeige.xml" />
+    <AndroidResource Include="Resources\drawable\ic_menu_copy.png" />
+    <AndroidResource Include="Resources\drawable\ic_menu_set_as.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

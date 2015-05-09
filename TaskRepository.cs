@@ -66,9 +66,9 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>The tasks stored in a IEnumerable<Task></returns>
 		/// <param name="sortOrder">Sort order to be applied to the tasks.</param>
-		public static IList< Task > GetTasks( string taskListName, IList< Task.SortOrders > sortOrder )
+		public static IList< Task > GetTasks( IList< string > taskListNames, IList< Task.SortOrders > sortOrder )
 		{
-			return InstanceProperty.sqliteDatabase.GetItems( taskListName, sortOrder );
+			return InstanceProperty.sqliteDatabase.GetItems( taskListNames, sortOrder );
 		}
 
 		/// <summary>
@@ -85,9 +85,9 @@ namespace AutoNag
 		/// </summary>
 		/// <returns>Whether or not the item was saved</returns>
 		/// <param name="item">Item.</param>
-		public static bool SaveTask( string taskListName, Task item )
+		public static bool SaveTask( Task item )
 		{
-			return ( InstanceProperty.sqliteDatabase.SaveItem( taskListName, item ) == SQLiteSingleItemUpdated );
+			return ( InstanceProperty.sqliteDatabase.SaveItem( item ) == SQLiteSingleItemUpdated );
 		}
 
 		/// <summary>
