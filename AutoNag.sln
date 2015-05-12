@@ -24,7 +24,7 @@ Global
 		$1.ResourceNamePolicy = FileFormatDefault
 		$0.VersionControlPolicy = $2
 		$2.inheritsSet = Mono
-		version = 2.0
+		version = 2.1
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

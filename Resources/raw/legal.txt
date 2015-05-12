@@ -8,7 +8,12 @@ Simple note/todo list application with a Widget front-end.<br>
 Each note consists of a Task Name and a Note field. The Note field can be of any length.<br>
 The note can be given a Priority, a Due Date, a Notification Time, and can be marked as Done. <br>
 The display of notes on the Widget can be sorted by any combination of Done, Priority and Due Date.<br>
- 
+
+<h3>Support for combined lists</h3>
+As of Version 2.1 AutoNag allows all of the task items to be shown in a single combined list.<br>
+A new list "Combined list" has been added to the end of the "Available lists" section on the settings page.
+By selecting this list all of the task items will be shown in the Widget with the current sort order applied.
+
 <h3>Support for multiple notes lists</h3>
 As of Version 2.0 AutoNag supports multiple note lists.<br>
 The name of the list currently being displayed on a Widget is shown at the top together with the number of entries in the list.<br>
@@ -16,8 +21,8 @@ Clicking on the list name displays the AutoNag settings screen. This screen allo
 created, deleted, renamed and coloured.<br>
 Any number of AutoNag Widgets can be displayed. Each widget can display different lists, or the same list<br>
 
-<h3>Version 2.0 - Known Problems and Missing Features</h3>
-1) Showing combined lists. Now that multiple lists are possible, the ability to display all the lists in a single widget would be nice.<br>
+<h3>Version 2.1 - Known Problems and Missing Features</h3>
+1) None.<br>
 
 <h3>Licensing</h3>
 Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 

@@ -20,7 +20,7 @@
     <string name="helpTitle">About AutoNag</string>
     <string name="settingsKey">settings</string>
     <string name="helpAboutCategory">About</string>
-    <string name="helpSettingsTitle">AutoNag version 2.0</string>
+    <string name="helpSettingsTitle">AutoNag version 2.1</string>
     <string name="helpSettingsSummary">Display details</string>
     <string name="listSettingsKey">displayedList</string>
     <string name="listSettingsTitle">Currently showing</string>
