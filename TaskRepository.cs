@@ -161,6 +161,15 @@ namespace AutoNag
 			InstanceProperty.sqliteDatabase.UpdateListColour( listName, colour );
 		}
 
+		/// <summary>
+		/// Removes an existing the list colour entry
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		public static void RemoveListColour( string listName )
+		{
+			InstanceProperty.sqliteDatabase.RemoveListColour( listName );
+		}
+
 		//
 		// Private methods
 		// 

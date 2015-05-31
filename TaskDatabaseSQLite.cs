@@ -336,6 +336,15 @@ namespace AutoNag
 			ExecuteSimpleNonQuery( string.Format( "UPDATE [{0}] SET [Colour] = '{1}' WHERE [ListName] = '{2}'", ListColourTableName, colour, listName ) );
 		}
 
+		/// <summary>
+		/// Removes an existing the list colour entry
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		public void RemoveListColour( string listName )
+		{
+			ExecuteSimpleNonQuery( string.Format( "DELETE FROM [{0}] WHERE [ListName] = '{1}'", ListColourTableName, listName ) );
+		}
+
 		//
 		// Private methods
 		//

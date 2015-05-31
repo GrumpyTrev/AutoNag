@@ -226,6 +226,10 @@ namespace AutoNag
 							}
 						}
 
+						// Add a colour entry for the new list name and remove the old one
+						ListColourPersistence.SetListColour( newName, ListColourPersistence.GetListColour( taskListName ) );
+						ListColourPersistence.RemoveListColour( taskListName );
+
 						// Re-initialise any items showing the list names
 						InitialiseTaskListItem();
 
@@ -347,6 +351,9 @@ namespace AutoNag
 						{
 							ListNamePersistence.SetListName( this, widgetId, "" );
 						}
+
+						// Remove its colour entry
+						ListColourPersistence.RemoveListColour( taskListName );
 
 						// Re-initialise any lists showing the task list names
 						InitialiseTaskListItem();

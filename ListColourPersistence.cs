@@ -99,6 +99,23 @@ namespace AutoNag
 			listColourCollection[ listName ] = newColour;
 		}
 
+		/// <summary>
+		/// Removes the list colour.
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		public static void RemoveListColour( string listName )
+		{
+			// Load the collection if required
+			LoadCollection();
+
+			// If there is an entry for the list then clear it
+			if ( listColourCollection.ContainsKey( listName ) == true )
+			{
+				TaskRepository.RemoveListColour( listName );
+				listColourCollection.Remove( listName ); 
+			}
+		}
+
 		//
 		// Private methods
 		//
