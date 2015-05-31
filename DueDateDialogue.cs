@@ -42,6 +42,7 @@ using System;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using Java.Util;
 
 namespace AutoNag
 {
@@ -75,23 +76,14 @@ namespace AutoNag
 		/// Creates a DueDateDialogue passing the initial date as Bundle arguments
 		/// </summary>
 		/// <returns>The instance.</returns>
-		/// <param name="initialTime">Initial time.</param>
+		/// <param name="initialDate">Initial date.</param>
 		public static DueDateDialogue CreateInstance( DateTime initialDate )
 		{
-			DueDateDialogue dateDialogue = new DueDateDialogue();
-
-			Bundle dialogueArgs = new Bundle();
-
 			// If the date has not been set then use the current date
-			if ( initialDate == DateTime.MinValue )
-			{
-				dialogueArgs.PutLong( DueDateLabel, ( long )( DateTime.Now - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds );
-			}
-			else
-			{
-				dialogueArgs.PutLong( DueDateLabel, ( long )( initialDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds );
-			}
+			Bundle dialogueArgs = new Bundle();
+			dialogueArgs.PutLong( DueDateLabel, ( long )( ( ( initialDate == DateTime.MinValue ) ? DateTime.Today : initialDate.Date ) - Seventies ).TotalMilliseconds );
 
+			DueDateDialogue dateDialogue = new DueDateDialogue();
 			dateDialogue.Arguments = dialogueArgs;
 
 			return dateDialogue;
@@ -131,14 +123,7 @@ namespace AutoNag
 			calendarControl = layoutView.FindViewById< CalendarView >( Resource.Id.calendarView );
 
 			// Either get the date from the arguments originally used to start the fragment of the saved date
-			if ( savedInstanceState == null )
-			{
-				calendarControl.Date = Arguments.GetLong( DueDateLabel );
-			}
-			else
-			{
-				calendarControl.Date = savedInstanceState.GetLong( DueDateLabel );
-			}
+			calendarControl.Date = ( savedInstanceState == null ) ? Arguments.GetLong( DueDateLabel ) : savedInstanceState.GetLong( DueDateLabel );
 
 			// Set the title
 			Dialog.SetTitle( "Due date" );
@@ -150,8 +135,10 @@ namespace AutoNag
 			};
 			layoutView.FindViewById< Button >( Resource.Id.dueDateSetButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
-				// Pass back the notification
-				listener.OnDueDateSet( new DateTime( calendarControl.Date * 10000 + new DateTime( 1970, 1, 1 ).Ticks ) );
+				// Pass back the notification. Use a GregorianCalendar in order to keep track of summer time
+				GregorianCalendar setDate = new GregorianCalendar();
+				setDate.TimeInMillis = calendarControl.Date;
+				listener.OnDueDateSet( new DateTime( setDate.Get( CalendarField.Year ), setDate.Get( CalendarField.Month ) + 1, setDate.Get( CalendarField.DayOfMonth ) ) );
 				Dismiss();
 			};
 			layoutView.FindViewById< Button >( Resource.Id.dueDateClearButton ).Click += ( buttonSender, buttonEvents ) =>
@@ -195,6 +182,11 @@ namespace AutoNag
 		/// The calendar control.
 		/// </summary>
 		private CalendarView calendarControl = null;
+
+		/// <summary>
+		/// Offset for interfacing to the Calander control
+		/// </summary>
+		private static DateTime Seventies = new DateTime( 1970, 1, 1 );
 	}
 }
 
