@@ -73,7 +73,7 @@ namespace AutoNag
 		public int CreateList( string listName )
 		{
 			return ExecuteSimpleNonQuery( string.Format( "CREATE TABLE [{0}] ( Identity INTEGER PRIMARY KEY ASC, Name TEXT, Notes TEXT, Done INTEGER," +
-				" NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT, table_name TEXT )", listName ) );
+				" NotificationRequired INTEGER, Priority INTEGER, DueDate TEXT, ModifiedDate TEXT )", listName ) );
 		}
 
 		/// <summary>
@@ -145,17 +145,13 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				// Make sure all the task list have the correct format
-				foreach ( string taskListName in taskListNames )
-				{
-					TableUpgrade( connection, taskListName );
-				}
-
 				// Need to join together the results of the selects and then order it
 				StringBuilder queryString = new StringBuilder();
 				foreach ( string taskListName in taskListNames )
 				{
-					queryString.AppendFormat( ( queryString.Length == 0 ) ? "SELECT * FROM [{0}]" : " UNION ALL SELECT * FROM [{0}]", taskListName );
+					queryString.AppendFormat( ( queryString.Length == 0 ) ? 
+						"SELECT *, '{0}' AS 'table_name' FROM [{0}]" : 
+						" UNION ALL SELECT *, '{0}' AS 'table_name' FROM [{0}]", taskListName );
 				}
 
 				// Finally add the sort clause
@@ -193,9 +189,9 @@ namespace AutoNag
 				SqliteConnection connection = new SqliteConnection( connectionString );
 				connection.Open();
 
-				TableUpgrade( connection, taskListName );
+				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT *, '{0}' AS 'table_name' FROM [{0}] WHERE [Identity] = {1}", taskListName, id ), 
+					connection ).ExecuteReader();
 
-				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}] WHERE [Identity] = {1}", taskListName, id ), connection ).ExecuteReader();
 				if ( reader.Read() == true )
 				{
 					item = FromReader( reader );
@@ -236,22 +232,19 @@ namespace AutoNag
 				command.Parameters.AddWithValue( null, dueDateToStore.ToString( DueDateFormat ) );
 
 				command.Parameters.AddWithValue( null, item.ModifiedDate.ToString( ModifiedDateFormat ) );
-				command.Parameters.AddWithValue( null, item.ListName );
 
 				// Either update an existing row or add a new one
 				if ( item.ID != 0 )
 				{
 					command.CommandText = string.Format( 
-						"UPDATE [{0}] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ?, " +
-						"[table_name] = ? WHERE [Identity] = ?", 
+						"UPDATE [{0}] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?", 
 						item.ListName );
 					command.Parameters.AddWithValue( null, item.ID );
 				}
 				else
 				{
 					command.CommandText = string.Format(
-						"INSERT INTO [{0}] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate], [table_name] )" +
-						" VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+						"INSERT INTO [{0}] ([Name], [Notes], [Done], [NotificationRequired], [Priority], [DueDate], [ModifiedDate] ) VALUES (?, ?, ?, ?, ?, ?, ?)",
 						item.ListName );
 				}
 				
@@ -469,30 +462,6 @@ namespace AutoNag
 			return orderClause;
 		}
 
-		/// <summary>
-		/// Check if the specified table contains a 'table_name' column.  If not add one.
-		/// </summary>
-		/// <param name="connection">Connection.</param>
-		/// <param name="tableName">Table name.</param>
-		private void TableUpgrade( SqliteConnection connection, string tableName )
-		{
-			SqliteDataReader reader = new SqliteCommand( string.Format( "PRAGMA table_info('{0}')", tableName ), connection ).ExecuteReader();
-
-			if ( reader.HasRows == true )
-			{
-				bool columnFound = false;
-				while ( ( reader.Read() == true ) && ( columnFound == false ) )
-				{
-					columnFound = ( reader.GetString( 1 ) == TableNameColumnName );
-				}
-
-				if ( columnFound == false )
-				{
-					new SqliteCommand( string.Format( "ALTER TABLE '{0}' ADD '{1}' TEXT DEFAULT '{0}'", tableName, TableNameColumnName ), connection ).ExecuteNonQuery();
-				}
-			}
-		}
-
 		//
 		// Private data
 		//
@@ -518,10 +487,5 @@ namespace AutoNag
 		/// The name of the list colour table.
 		/// </summary>
 		private const string ListColourTableName = "ListColour.Table";
-
-		/// <summary>
-		/// The name of the table name column.
-		/// </summary>
-		private const string TableNameColumnName = "table_name";
 	}
 }
