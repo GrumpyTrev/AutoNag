@@ -14,6 +14,10 @@ As of Version 2.1 AutoNag allows all of the task items to be shown in a single c
 A new list "Combined list" has been added to the end of the "Available lists" section on the settings page.
 By selecting this list all of the task items will be shown in the Widget with the current sort order applied.
 
+<h3>Copying and moving tasks</h3>
+As of Version 2.1 tasks can be copied or moved from one list to another, either by using the icons displayed
+on the task header or from the standard menu button.
+
 <h3>Support for multiple notes lists</h3>
 As of Version 2.0 AutoNag supports multiple note lists.<br>
 The name of the list currently being displayed on a Widget is shown at the top together with the number of entries in the list.<br>
@@ -22,7 +26,10 @@ created, deleted, renamed and coloured.<br>
 Any number of AutoNag Widgets can be displayed. Each widget can display different lists, or the same list<br>
 
 <h3>Version 2.1 - Known Problems and Missing Features</h3>
-1) None.<br>
+1) No support for importing or exporting tasks<br>
+2) Task list configuration should be via context menus<br>
+3) Copy and move options should be from a menu icon on the task header<br>
+
 
 <h3>Licensing</h3>
 Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 
