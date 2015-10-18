@@ -62,10 +62,11 @@ namespace AutoNag
 		/// <param name="intentContext">Intent context.</param>
 		public static void SetAlarm( string taskListName, int taskIdentity, string taskName, DateTime alarmDate, Context intentContext )
 		{
-			long timeToAlarm = ( long )( alarmDate - new DateTime( 1970, 1, 1 ) ).TotalMilliseconds;
+			// Convert to UTC time and adust for difference between Java and .net time 
+			long utcAlarmTimeInMillis = TimeZoneInfo.ConvertTimeToUtc( alarmDate ).AddSeconds( -epochDifferenceInSeconds ).Ticks / 10000;
 
 			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
-				.Set( AlarmType.RtcWakeup, timeToAlarm, PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
+				.Set( AlarmType.RtcWakeup, utcAlarmTimeInMillis, PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
 					new WidgetIntent( intentContext, typeof( AlarmReceiver ) ).SetTaskIdentity( taskIdentity ).SetTaskName( taskName )
 						.SetTaskListName( taskListName ), 0) );
 		}
@@ -94,6 +95,15 @@ namespace AutoNag
 		private AlarmInterface()
 		{
 		}
+
+		//
+		// Private data
+		//
+
+		/// <summary>
+		/// The epoch difference in seconds between epoch (Java) and ticks (.NET)
+		/// </summary>
+		static double epochDifferenceInSeconds = ( new DateTime( 1970, 1, 1 ) - DateTime.MinValue ).TotalSeconds;
 	}
 }
 
