@@ -13,18 +13,9 @@
 		android:key="@string/widgetSelectListCategoryKey" />
 	<PreferenceCategory
 		android:title="@string/listManagementCategory" >
-		<autonag.ListPreference
-			android:key="@string/renameScreenKey"
-	        android:title="@string/renameScreenTitle" />
 		<autonag.CustomPreference
 			android:key="@string/createListKey"
 	        android:title="@string/createListTitle" />
-		<autonag.ListPreference
-			android:key="@string/deleteListKey"
-	        android:title="@string/deleteListTitle" />
-		<autonag.ListPreference
-			android:key="@string/colourListKey"
-	        android:title="@string/colourListTitle" />
 	</PreferenceCategory>
 	<PreferenceCategory
 		android:title="@string/helpAboutCategory" >

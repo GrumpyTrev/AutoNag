@@ -55,7 +55,7 @@ namespace AutoNag
 	/// The SettingsActivity activity displays the current configuration of an AutoNag widget.
 	/// </summary>
 	[Activity (Label="AutoNag settings") ]
-	public class SettingsActivity : PreferenceActivity
+	public class SettingsActivity : PreferenceActivity, IMenuItemOnMenuItemClickListener
 	{
 		/// <summary>
 		/// Display delegate.
@@ -68,6 +68,41 @@ namespace AutoNag
 		public SettingsActivity()
 		{
 		}
+
+		/// <summary>
+		/// Called when a menu item has been invoked. Call the associated method
+		/// </summary>
+		/// <param name="item">The menu item that was invoked.</param>
+		/// <returns>To be added.</returns>
+		public bool OnMenuItemClick( IMenuItem item )
+		{
+			switch ( item.ItemId )
+			{
+				case 0:
+				{
+					OnRenameList( contextMenuList );
+					break;
+				}
+
+				case 1:
+				{
+					OnDeleteList( contextMenuList );
+					break;
+				}
+
+				case 2:
+				{
+					OnColourList( contextMenuList );
+					break;
+				}
+			}
+
+			return true;
+		}
+
+		//
+		// Public data
+		//
 
 		/// <summary>
 		/// The name of the combined list.
@@ -98,20 +133,16 @@ namespace AutoNag
 
 			currentListPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.widgetCurrentListKey ) );
 			createPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.createListKey ) );
-			deletePreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.deleteListKey ) );
-			colourPreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.colourListKey ) );
-			renamePreference = ( ListPreference )screen.FindPreference( GetString( Resource.String.renameScreenKey ) );
-
 			availableListsCategory = ( PreferenceCategory )screen.FindPreference( GetString( Resource.String.widgetSelectListCategoryKey ) );
 
 			// Initialise any items that show task list names
 			InitialiseTaskListItem();
 
-			// Set up the click handlers
-			deletePreference.SelectedProperty = OnDeleteList;
-			colourPreference.SelectedProperty = OnColourList;
-			renamePreference.SelectedProperty = OnRenameList;
-			createPreference.SelectedProperty = OnCreateList;
+			// Set the selection delegate for the createPreference
+			createPreference.SelectionProperty = OnCreateList;
+
+			// And the context menu for the currentListPreference
+			currentListPreference.ContextMenuProperty = OnContextMenuRequired;
 		}
 
 		/// <summary>
@@ -122,10 +153,6 @@ namespace AutoNag
 		protected override void OnPause()
 		{
 			base.OnPause();
-
-			deletePreference.OnDismiss();
-			colourPreference.OnDismiss();
-			renamePreference.OnDismiss();
 
 			if ( dialogueBeingShown != null )
 			{
@@ -143,7 +170,7 @@ namespace AutoNag
 		//
 
 		/// <summary>
-		/// Initialises the available lists collection and refreshes the other preferences that contain list names
+		/// Initialises the available lists collection
 		/// </summary>
 		private void InitialiseTaskListItem()
 		{
@@ -158,17 +185,12 @@ namespace AutoNag
 			{
 				if ( listName != currentListName )
 				{
-					availableListsCategory.AddPreference( new CustomPreference( this, OnSelectList, ListColourHelper.GetColourResource( listName ), listName ) );
+					availableListsCategory.AddPreference( new CustomPreference( this, OnListSelected, OnContextMenuRequired, ListColourHelper.GetColourResource( listName ), listName ) );
 				}
 			}
 
 			// Add an entry for the combined list
-			availableListsCategory.AddPreference( new CustomPreference( this, OnSelectList, ListColourHelper.GetColourResource( CombinedListName ), CombinedListName ) );
-
-			// Force the delete, colour and rename lists to initialise themselves
-			deletePreference.NotifyDataSetChanged();
-			colourPreference.NotifyDataSetChanged();
-			renamePreference.NotifyDataSetChanged();
+			availableListsCategory.AddPreference( new CustomPreference( this, OnListSelected, null, ListColourHelper.GetColourResource( CombinedListName ), CombinedListName ) );
 		}
 
 		/// <summary>
@@ -176,7 +198,7 @@ namespace AutoNag
 		/// Get the new list name. Store it and broadcast the change to the widget
 		/// </summary>
 		/// <param name="listName">List name.</param>
-		private void OnSelectList( string taskListName )
+		private void OnListSelected( string taskListName )
 		{
 			// Update the persisted association
 			ListNamePersistence.SetListName( this, widgetIdentity, taskListName );
@@ -189,6 +211,22 @@ namespace AutoNag
 
 			// This is usually all the user wishes to do, so get out of here
 			Finish();
+		}
+
+		/// <summary>
+		/// Called when a long click has been detected.
+		/// Allow the interface to add items to the menu
+		/// </summary>
+		/// <param name="listName">List name.</param>
+		/// <param name="menuInterface">Menu interface.</param>
+		private void OnContextMenuRequired( string taskListName, IContextMenu menuInterface )
+		{
+			menuInterface.SetHeaderTitle( taskListName );
+			menuInterface.Add( Menu.None, 0, 0, GetString( Resource.String.renameScreenTitle ) ).SetOnMenuItemClickListener( this );
+			menuInterface.Add( Menu.None, 1, 1, GetString( Resource.String.deleteListTitle ) ).SetOnMenuItemClickListener( this );
+			menuInterface.Add( Menu.None, 2, 2, GetString( Resource.String.colourListTitle ) ).SetOnMenuItemClickListener( this );
+
+			contextMenuList = taskListName;
 		}
 
 		/// <summary>
@@ -230,6 +268,16 @@ namespace AutoNag
 						ListColourPersistence.SetListColour( newName, ListColourPersistence.GetListColour( taskListName ) );
 						ListColourPersistence.RemoveListColour( taskListName );
 
+						// Change the task list name in any alarms associated with this task list
+						foreach ( Task alarmTask in TaskRepository.GetTasks( new List< string >( new string[] { newName } ), null ) )
+						{
+							if ( alarmTask.NotificationRequired == true )
+							{
+								AlarmInterface.CancelAlarm( taskListName, alarmTask.ID, this );
+								AlarmInterface.SetAlarm( newName, alarmTask.ID, alarmTask.Name, alarmTask.DueDate, this );
+							}
+						}
+
 						// Re-initialise any items showing the list names
 						InitialiseTaskListItem();
 
@@ -238,6 +286,104 @@ namespace AutoNag
 					}
 				}
 			});
+		}
+
+		/// <summary>
+		/// The user has selected a task list to delete
+		/// Confirm the deletion with the user
+		/// </summary>
+		private void OnDeleteList( string taskListName )
+		{
+			// Form a list of those widgets displaying the task list
+			List< int > widgetsDisplayingList = new List< int >();
+			foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
+			{
+				if ( item.Value == taskListName )
+				{
+					widgetsDisplayingList.Add( item.Key );
+				}
+			}
+
+			// Set the confirmation string according to whether or not the list is being displayed
+			string message = "";
+			if ( widgetsDisplayingList.Count == 0 )
+			{
+				message = string.Format( "Do you really want to delete list <{0}>?", taskListName );
+			}
+			else
+			{
+				message = string.Format( "List <{0}> is currently being displayed. Do you really want to delete it?", taskListName );
+			}
+
+			// Display the dialogue
+			ShowDialogue( new AlertDialog.Builder( this )
+				.SetMessage( message )
+				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
+				{
+					// Cancel any alarms associated with tasks in the list to be deleted
+					foreach ( Task alarmTask in TaskRepository.GetTasks( new List< string >( new string[] { taskListName } ), null ) )
+					{
+						if ( alarmTask.NotificationRequired == true )
+						{
+							AlarmInterface.CancelAlarm( taskListName, alarmTask.ID, this );
+						}
+					}
+
+					// Delete the list
+					if ( TaskRepository.DeleteTaskList( taskListName ) == true )
+					{
+						// Clear the associations for this task list name
+						foreach( int widgetId in widgetsDisplayingList )
+						{
+							ListNamePersistence.SetListName( this, widgetId, "" );
+						}
+
+						// Remove its colour entry
+						ListColourPersistence.RemoveListColour( taskListName );
+
+						// Re-initialise any lists showing the task list names
+						InitialiseTaskListItem();
+
+						// Tell the widgets
+						SendBroadcast( new WidgetIntent( AutoNagWidget.ListDeletedAction ) );
+					}
+				} )
+				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => {} )
+				.Create() ); 
+		}
+
+		/// <summary>
+		/// Called when the user wishes to change the colour of a task list.
+		/// Display a dialogue showing all the possible colours
+		/// </summary>
+		/// <param name="taskListName">Task list name.</param>
+		private void OnColourList( string taskListName )
+		{
+			// Create a ColourAdapter to supply the colours to the list
+			ColourAdapter adapter = new ColourAdapter( this );
+
+			// Determine the index of the current colour
+			int index = adapter.GetPosition( ListColourPersistence.GetListColour( taskListName ).ToString() );
+
+			ShowDialogue( new AlertDialog.Builder( this )
+				.SetTitle( string.Format( "Select colour for <{0}>", taskListName ) )
+				.SetSingleChoiceItems( adapter, index, ( buttonSender, buttonEvents ) => {} )
+				.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => 
+				{
+					// Has the selection changed
+					int checkedItem = ( ( AlertDialog )buttonSender ).ListView.CheckedItemPosition;
+					if ( checkedItem != index )
+					{
+						ListColourPersistence.SetListColour( taskListName, ListColourHelper.StringToColourEnum( adapter.GetItem( checkedItem ) ) );
+
+						// Re-initialise any lists showing the task list names
+						InitialiseTaskListItem();
+
+						// Tell the widget
+						SendBroadcast( new WidgetIntent( AutoNagWidget.ListColourAction ).SetTaskListName( taskListName ) );
+					}
+				} )
+				.Create() ); 
 		}
 
 		/// <summary>
@@ -312,95 +458,6 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// The user has selected a task list to delete
-		/// Confirm the deletion with the user
-		/// </summary>
-		private void OnDeleteList( string taskListName )
-		{
-			// Form a list of those widgets displaying the task list
-			List< int > widgetsDisplayingList = new List< int >();
-			foreach( KeyValuePair< int, string > item in ListNamePersistence.GetItems( this ) )
-			{
-				if ( item.Value == taskListName )
-				{
-					widgetsDisplayingList.Add( item.Key );
-				}
-			}
-
-			// Set the confirmation string according to whether or not the list is being displayed
-			string message = "";
-			if ( widgetsDisplayingList.Count == 0 )
-			{
-				message = string.Format( "Do you really want to delete list <{0}>?", taskListName );
-			}
-			else
-			{
-				message = string.Format( "List <{0}> is currently being displayed. Do you really want to delete it?", taskListName );
-			}
-
-			// Display the dialogue
-			ShowDialogue( new AlertDialog.Builder( this )
-				.SetMessage( message )
-				.SetPositiveButton( "Yes", ( buttonSender, buttonEvents ) =>
-				{
-					// Delete the list
-					if ( TaskRepository.DeleteTaskList( taskListName ) == true )
-					{
-						// Clear the associations for this task list name
-						foreach( int widgetId in widgetsDisplayingList )
-						{
-							ListNamePersistence.SetListName( this, widgetId, "" );
-						}
-
-						// Remove its colour entry
-						ListColourPersistence.RemoveListColour( taskListName );
-
-						// Re-initialise any lists showing the task list names
-						InitialiseTaskListItem();
-
-						// Tell the widgets
-						SendBroadcast( new WidgetIntent( AutoNagWidget.ListDeletedAction ) );
-					}
-				} )
-				.SetNegativeButton( "No", ( buttonSender, buttonEvents ) => {} )
-				.Create() ); 
-		}
-
-		/// <summary>
-		/// Called when the user wishes to change the colour of a task list.
-		/// Display a dialogue showing all the possible colours
-		/// </summary>
-		/// <param name="taskListName">Task list name.</param>
-		private void OnColourList( string taskListName )
-		{
-			// Create a ColourAdapter to supply the colours to the list
-			ColourAdapter adapter = new ColourAdapter( this );
-
-			// Determine the index of the current colour
-			int index = adapter.GetPosition( ListColourPersistence.GetListColour( taskListName ).ToString() );
-
-			ShowDialogue( new AlertDialog.Builder( this )
-				.SetTitle( string.Format( "Select colour for <{0}>", taskListName ) )
-				.SetSingleChoiceItems( adapter, index, ( buttonSender, buttonEvents ) => {} )
-				.SetPositiveButton( "Ok", ( buttonSender, buttonEvents ) => 
-				{
-					// Has the selection changed
-					int checkedItem = ( ( AlertDialog )buttonSender ).ListView.CheckedItemPosition;
-					if ( checkedItem != index )
-					{
-						ListColourPersistence.SetListColour( taskListName, ListColourHelper.StringToColourEnum( adapter.GetItem( checkedItem ) ) );
-
-						// Re-initialise any lists showing the task list names
-						InitialiseTaskListItem();
-
-						// Tell the widget
-						SendBroadcast( new WidgetIntent( AutoNagWidget.ListColourAction ).SetTaskListName( taskListName ) );
-					}
-				} )
-				.Create() ); 
-		}
-
-		/// <summary>
 		/// Display the task list being displayed by the widget
 		/// </summary>
 		private void DisplayTaskListName()
@@ -439,7 +496,7 @@ namespace AutoNag
 		private int widgetIdentity = 0;
 
 		/// <summary>
-		/// The curren tlist name preference item
+		/// The current list name preference item
 		/// </summary>
 		private CustomPreference currentListPreference = null;
 
@@ -449,24 +506,9 @@ namespace AutoNag
 		private string currentListName = "";
 
 		/// <summary>
-		/// The list rename preference.
-		/// </summary>
-		private ListPreference renamePreference = null;
-
-		/// <summary>
 		/// The create list preference.
 		/// </summary>
 		private CustomPreference createPreference = null;
-
-		/// <summary>
-		/// The delete list.
-		/// </summary>
-		private ListPreference deletePreference = null;
-
-		/// <summary>
-		/// The change colour preference
-		/// </summary>
-		private ListPreference colourPreference = null;
 
 		/// <summary>
 		/// The available lists category.
@@ -477,6 +519,11 @@ namespace AutoNag
 		/// Keep track of any dialogues being shown so that they can be dismissed on configuration change
 		/// </summary>
 		private Dialog dialogueBeingShown = null;
+
+		/// <summary>
+		/// The name of the list for which a context menu has been created
+		/// </summary>
+		private string contextMenuList = "";
 	}
 }
 

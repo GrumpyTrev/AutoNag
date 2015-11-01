@@ -12,10 +12,10 @@
     <item android:id="@+id/copyTask"
           android:icon="@drawable/ic_menu_copy"
           android:title="Copy task"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="never" />
     <item android:id="@+id/moveTask"
           android:icon="@drawable/ic_menu_set_as"
           android:title="Move task"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="never" />
 </menu>
 

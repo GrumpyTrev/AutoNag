@@ -50,27 +50,35 @@ namespace AutoNag
 	/// <summary>
 	/// The CustomPreference class allows the background and text colour of a preference to be changed.
 	/// </summary>
-	public class CustomPreference : Preference
+	public class CustomPreference : Preference, View.IOnCreateContextMenuListener
 	{
-		/// <summary>
-		/// List selected delegate.
-		/// </summary>
-		public delegate void ListSelectedDelegate( string listName );
-
 		//
 		// Public methods
 		//
 
 		/// <summary>
+		/// Delegate to be called when the preference has been selected with a single click
+		/// </summary>
+		public delegate void PreferenceSelectedDelegate( string itemName );
+
+		/// <summary>
+		/// Delegate to be called to customise the context menu when a long click has been detected
+		/// </summary>
+		public delegate void ContextMenuDelegate( string listName, IContextMenu menuInterface );
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="AutoNag.CustomPreference"/> class.
 		/// </summary>
 		/// <param name="viewContext">View context.</param>
-		/// <param name="selectionDelegate">Selection delegate.</param>
+		/// <param name="preferenceSelected">Selection delegate.</param>
+		/// <param name="contextMenuRequired">Menu delegate.</param>
 		/// <param name="backGround">Back ground.</param>
 		/// <param name="title">Title.</param>
-		public CustomPreference( Context viewContext, ListSelectedDelegate selectionDelegate, int backGround, string title ) : base( viewContext )
+		public CustomPreference( Context viewContext, PreferenceSelectedDelegate preferenceSelected, ContextMenuDelegate contextMenuRequired, int backGround, 
+			string title ) : base( viewContext )
 		{
-			listener = selectionDelegate;
+			selectionDelegate = preferenceSelected;
+			menuDelegate = contextMenuRequired;
 			ColourResourceProperty = backGround;
 			Title = title;
 		}
@@ -110,14 +118,41 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// Sets the selected delegate.
+		/// Raises the create context menu event.
+		/// Pass this back to the ContextMenuDelegate so it can create the menu for the selected item
+		/// </summary>
+		/// <param name="menuInterface">Menu interface.</param>
+		/// <param name="theView">The view.</param>
+		/// <param name="menuInfo">Menu info.</param>
+		public void OnCreateContextMenu( IContextMenu menuInterface, View theView, IContextMenuContextMenuInfo menuInfo )
+		{
+			if ( menuDelegate != null )
+			{
+				menuDelegate( Title, menuInterface );
+			}
+		}
+
+		/// <summary>
+		/// Sets the selection delegate interface.
 		/// </summary>
 		/// <value>The selected property.</value>
-		public ListSelectedDelegate SelectedProperty
+		public PreferenceSelectedDelegate SelectionProperty
 		{
 			set
 			{
-				listener = value;
+				selectionDelegate = value;
+			}
+		}
+
+		/// <summary>
+		/// Sets the context menu delegate interface.
+		/// </summary>
+		/// <value>The selected property.</value>
+		public ContextMenuDelegate ContextMenuProperty
+		{
+			set
+			{
+				menuDelegate = value;
 			}
 		}
 
@@ -134,18 +169,28 @@ namespace AutoNag
 			base.OnBindView(view);
 			displayView = view;
 
+			if ( menuDelegate != null )
+			{
+				// Set up a listener to catch when a context menu is required
+				view.SetOnCreateContextMenuListener( this );
+
+				// For some reason setting up a long click listener prevents the OnClick override from being called.
+				// So we need to catch the event itself and process
+				view.Click += (object sender, EventArgs e) => OnClick();
+			}
+
 			SetBackground();
 		}
 
-		/// <summary>
+    	/// <summary>
 		/// Processes a click on the preference.
 		/// </summary>
 		protected override void OnClick()
 		{
 			base.OnClick();
-			if ( listener != null )
+			if ( selectionDelegate != null )
 			{
-				listener( Title );
+				selectionDelegate( Title );
 			}
 		}
 
@@ -175,9 +220,14 @@ namespace AutoNag
 		private int backgroundResource = 0;
 
 		/// <summary>
-		/// The listener.
+		/// The selection delegate.
 		/// </summary>
-		private ListSelectedDelegate listener =  null;
+		private PreferenceSelectedDelegate selectionDelegate =  null;
+
+		/// <summary>
+		/// The menu delegate.
+		/// </summary>
+		private ContextMenuDelegate menuDelegate = null;
 
 		/// <summary>
 		/// The display view.

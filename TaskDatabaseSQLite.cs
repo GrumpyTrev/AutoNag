@@ -84,7 +84,11 @@ namespace AutoNag
 		/// <param name="newName">New name.</param>
 		public int RenameList( string oldName, string newName )
 		{
-			return ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, newName ) );
+			// SQLite is case insensitive as far as table names are concerned. The case of a table name is retained when the table is created but thereafter 
+			// the case is ignored. When renaming a table it is best to give it a temporary name first and then the final name.
+			ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, "temp_table" ) );
+
+			return ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", "temp_table", newName ) );
 		}
 
 		/// <summary>
