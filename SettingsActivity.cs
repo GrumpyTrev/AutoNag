@@ -129,11 +129,11 @@ namespace AutoNag
 			widgetIdentity = new WidgetIntent( Intent ).WidgetIdProperty;
 
 			// Get a reference to the preference items used elsewhere in this class
-			PreferenceScreen screen = ( PreferenceScreen )FindPreference( GetString( Resource.String.settingsKey ) );
+			PreferenceScreen screen = ( PreferenceScreen )FindPreference( "settings" );
 
-			currentListPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.widgetCurrentListKey ) );
-			createPreference = ( CustomPreference )screen.FindPreference( GetString( Resource.String.createListKey ) );
-			availableListsCategory = ( PreferenceCategory )screen.FindPreference( GetString( Resource.String.widgetSelectListCategoryKey ) );
+			currentListPreference = ( CustomPreference )screen.FindPreference( "currentList" );
+			createPreference = ( CustomPreference )screen.FindPreference( "createList" );
+			availableListsCategory = ( PreferenceCategory )screen.FindPreference( "availableLists" );
 
 			// Initialise any items that show task list names
 			InitialiseTaskListItem();
@@ -222,9 +222,9 @@ namespace AutoNag
 		private void OnContextMenuRequired( string taskListName, IContextMenu menuInterface )
 		{
 			menuInterface.SetHeaderTitle( taskListName );
-			menuInterface.Add( Menu.None, 0, 0, GetString( Resource.String.renameScreenTitle ) ).SetOnMenuItemClickListener( this );
-			menuInterface.Add( Menu.None, 1, 1, GetString( Resource.String.deleteListTitle ) ).SetOnMenuItemClickListener( this );
-			menuInterface.Add( Menu.None, 2, 2, GetString( Resource.String.colourListTitle ) ).SetOnMenuItemClickListener( this );
+			menuInterface.Add( Menu.None, 0, 0, "Rename list" ).SetOnMenuItemClickListener( this );
+			menuInterface.Add( Menu.None, 1, 1, "Delete list" ).SetOnMenuItemClickListener( this );
+			menuInterface.Add( Menu.None, 2, 2, "Change list colour" ).SetOnMenuItemClickListener( this );
 
 			contextMenuList = taskListName;
 		}

@@ -94,9 +94,9 @@ namespace AutoNag
 		/// Called when a fragment is first attached to its activity.
 		/// </summary>
 		/// <param name="activity">To be added.</param>
-		public override void OnAttach(Activity activity)
+		public override void OnAttach( Activity activity )
 		{
-			base.OnAttach(activity);
+			base.OnAttach( activity );
 
 			// Save the NotificationTimeDialogueListener interface
 			listener = ( DueDateDialogueListener )activity;

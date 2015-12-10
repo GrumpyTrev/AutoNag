@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="AutoNag.AutoNag" android:versionName="2.1" android:versionCode="2">
 	<uses-sdk android:minSdkVersion="14" />
-	<application android:label="@string/widgetName" android:icon="@drawable/icon" />
+	<application android:label="AutoNag" android:icon="@drawable/icon" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>

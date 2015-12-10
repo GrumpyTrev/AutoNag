@@ -13,7 +13,7 @@
 //
 // Purpose:      The HelpDialogueActivity activity displays AutoNag information and copyright details.
 //				 
-// Description:  This nmeeds to ba an Activity as it is invoked from an AppWidget rather than another Activity (in which case it could have been a Fragment)
+// Description:  This needs to be an Activity as it is invoked from an AppWidget rather than another Activity (in which case it could have been a Fragment)
 //
 //
 //
@@ -51,7 +51,7 @@ namespace AutoNag
 	/// <summary>
 	/// The HelpDialogueActivity activity displays AutoNag information and copyright details.
 	/// </summary>
-	[Activity (Label = "@string/helpTitle", Theme = "@style/AppThemeActionBarNoIcon" ) ]
+	[Activity (Label = "About AutoNag", Theme = "@style/AppThemeActionBarNoIcon" ) ]
 	public class HelpDialogueActivity : Activity
 	{
 		/// <summary>
@@ -104,11 +104,9 @@ namespace AutoNag
 			string inputString = "";
 
 			using ( Stream inputStream = Resources.OpenRawResource( id ) )
+			using ( StreamReader reader = new StreamReader( inputStream ) )
 			{
-				using ( StreamReader reader = new StreamReader( inputStream ) )
-				{
-					inputString = reader.ReadToEnd();
-				}
+				inputString = reader.ReadToEnd();
 			}
 
 			return inputString;

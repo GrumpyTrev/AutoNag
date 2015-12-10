@@ -56,61 +56,6 @@ namespace AutoNag
 	}
 
 	/// <summary>
-	/// The background drawable and colour resources
-	/// </summary>
-	public class ListColour
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="AutoNag.ListColour"/> class.
-		/// </summary>
-		/// <param name="drawableId">Drawable identifier.</param>
-		/// <param name="colourId">Colour identifier.</param>
-		public ListColour( int drawableId, int colourId )
-		{
-			drawableResourceId = drawableId;
-			colourResourceId = colourId;
-		}
-
-		/// <summary>
-		/// Gets the drawable property.
-		/// </summary>
-		/// <value>The drawable property.</value>
-		public int DrawableProperty
-		{
-			get
-			{
-				return drawableResourceId;
-			}
-		}
-
-		/// <summary>
-		/// Gets the colour property.
-		/// </summary>
-		/// <value>The colour property.</value>
-		public int ColourProperty
-		{
-			get
-			{
-				return colourResourceId;
-			}
-		}
-
-		//
-		// Private data
-		//
-
-		/// <summary>
-		/// The drawable resource identifier.
-		/// </summary>
-		private readonly int drawableResourceId = 0;
-
-		/// <summary>
-		/// The colour resource identifier.
-		/// </summary>
-		private readonly int colourResourceId = 0;
-	}
-
-	/// <summary>
 	/// The ListColourHelper class encapsulates some miscellaneous task list colour functions.
 	/// </summary>
 	public class ListColourHelper
@@ -126,27 +71,17 @@ namespace AutoNag
 		/// <param name="listName">List name.</param>
 		public static int GetColourResource( string listName )
 		{
-			return colourCollection[ ListColourPersistence.GetListColour( listName ) ].ColourProperty;
+			return colourCollection[ ListColourPersistence.GetListColour( listName ) ];
 		}
 
 		/// <summary>
-		/// Gets the drawable resource.
+		/// Gets the colour resource.
 		/// </summary>
-		/// <returns>The drawable resource.</returns>
-		/// <param name="colour">Colour.</param>
-		public static int GetDrawableResource( ListColourEnum colour )
-		{
-			return colourCollection[ colour ].DrawableProperty;
-		}
-
-		/// <summary>
-		/// Gets the drawable resource.
-		/// </summary>
-		/// <returns>The drawable resource.</returns>
+		/// <returns>The colour resource.</returns>
 		/// <param name="listName">List name.</param>
-		public static int GetDrawableResource( string listName )
+		public static int GetColourResource( ListColourEnum colour )
 		{
-			return colourCollection[ ListColourPersistence.GetListColour( listName ) ].DrawableProperty;
+			return colourCollection[ colour ];
 		}
 
 		/// <summary>
@@ -201,11 +136,11 @@ namespace AutoNag
 		/// </summary>
 		static ListColourHelper()
 		{
-			colourCollection[ ListColourEnum.Yellow ] = new ListColour( Resource.Drawable.NotDoneBackgroundYellow, Resource.Color.itemYellowBackground );
-			colourCollection[ ListColourEnum.Blue ] = new ListColour( Resource.Drawable.NotDoneBackgroundBlue, Resource.Color.itemBlueBackground );
-			colourCollection[ ListColourEnum.Green ] = new ListColour( Resource.Drawable.NotDoneBackgroundGreen, Resource.Color.itemGreenBackground );
-			colourCollection[ ListColourEnum.Pink ] = new ListColour( Resource.Drawable.NotDoneBackgroundPink, Resource.Color.itemPinkBackground );
-			colourCollection[ ListColourEnum.Beige ] = new ListColour( Resource.Drawable.NotDoneBackgroundBeige, Resource.Color.itemBeigeBackground );
+			colourCollection[ ListColourEnum.Yellow ] = Resource.Color.itemYellowBackground;
+			colourCollection[ ListColourEnum.Blue ] = Resource.Color.itemBlueBackground;
+			colourCollection[ ListColourEnum.Green ] = Resource.Color.itemGreenBackground;
+			colourCollection[ ListColourEnum.Pink ] = Resource.Color.itemPinkBackground;
+			colourCollection[ ListColourEnum.Beige ] = Resource.Color.itemBeigeBackground;
 		}
 
 		//
@@ -215,12 +150,7 @@ namespace AutoNag
 		/// <summary>
 		/// The colour collection.
 		/// </summary>
-		private static Dictionary< ListColourEnum, ListColour > colourCollection = new Dictionary< ListColourEnum, ListColour >();
-
-		/// <summary>
-		/// The default list colour.
-		/// </summary>
-		private static ListColour defaultListColour = new ListColour( Resource.Drawable.NotDoneBackgroundYellow, Resource.Color.itemYellowBackground );
+		private static Dictionary< ListColourEnum, int > colourCollection = new Dictionary< ListColourEnum, int >();
 
 		/// <summary>
 		/// The default list colour enum.

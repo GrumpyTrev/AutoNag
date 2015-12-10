@@ -173,10 +173,8 @@ namespace AutoNag
 		{
 			List< Task.SortOrders > taskSortOrder = new List<Task.SortOrders>();
 
-			// Get the ordered set of SortOrderState items
-			List < SortOrderState > sortStates = SortOrderPersistence.GetSortOrder( orderContext, widgetId );
-
-			foreach ( SortOrderState orderState in sortStates )
+			// Get the ordered set of SortOrderState items and iterate over it
+			foreach ( SortOrderState orderState in SortOrderPersistence.GetSortOrder( orderContext, widgetId ) )
 			{
 				if ( orderState.StateProperty == true )
 				{
@@ -229,14 +227,7 @@ namespace AutoNag
 		public void SetImage( RemoteViews views, int orderIcon, bool state )
 		{
 			// Display the correct image
-			if ( state == true )
-			{
-				views.SetImageViewResource( orderIcon, orderOnImage );
-			}
-			else
-			{
-				views.SetImageViewResource( orderIcon, orderOffImage );
-			}
+			views.SetImageViewResource( orderIcon, ( state == true ) ? orderOnImage : orderOffImage );
 		}
 
 		/// <summary>

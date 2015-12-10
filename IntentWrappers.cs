@@ -89,7 +89,6 @@ namespace AutoNag
 		public virtual WidgetIntent SetWidgetId( int widgetId )
 		{
 			PutExtra( AppWidgetManager.ExtraAppwidgetId, widgetId );
-
 			return this;
 		}
 
@@ -293,14 +292,6 @@ namespace AutoNag
 		/// <param name="target">Target.</param>
 		public PendingWidgetIntent( Context intentContext, System.Type target ) : base( intentContext, target )
 		{ 
-		}
-
-		/// <summary>
-		/// PendingWidgetIntent constructor for an intent with a broadcast action"/> class.
-		/// </summary>
-		/// <param name="action">Action.</param>
-		public PendingWidgetIntent( string action ) : base( action )
-		{
 		}
 
 		/// <summary>

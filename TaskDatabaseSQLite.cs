@@ -84,11 +84,14 @@ namespace AutoNag
 		/// <param name="newName">New name.</param>
 		public int RenameList( string oldName, string newName )
 		{
+			string renameFormat = "ALTER TABLE [{0}] RENAME TO [{1}]";
+			string tempTableName = "temp_table";
+
 			// SQLite is case insensitive as far as table names are concerned. The case of a table name is retained when the table is created but thereafter 
 			// the case is ignored. When renaming a table it is best to give it a temporary name first and then the final name.
-			ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", oldName, "temp_table" ) );
+			ExecuteSimpleNonQuery( string.Format( renameFormat, oldName, tempTableName ) );
 
-			return ExecuteSimpleNonQuery( string.Format( "ALTER TABLE [{0}] RENAME TO [{1}]", "temp_table", newName ) );
+			return ExecuteSimpleNonQuery( string.Format( renameFormat, tempTableName, newName ) );
 		}
 
 		/// <summary>
@@ -109,14 +112,10 @@ namespace AutoNag
 		{
 			List< string > tableList = new List< string >();
 
-			lock( locker ) 
+			// Get all the table names
+			ExecuteReaderCommand( "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'", delegate( SqliteDataReader reader )
 			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				SqliteDataReader reader = new SqliteCommand( "SELECT [Name] FROM [sqlite_master] WHERE type = 'table'", connection ).ExecuteReader();
-
-				// Extract the table names from the reader and add to the list
+				// Extract the table names from the reader and add to the list - ignore 'system' table names
 				while ( reader.Read() == true )
 				{
 					string tableName = reader.GetString( 0 );
@@ -125,12 +124,7 @@ namespace AutoNag
 						tableList.Add( tableName );
 					}
 				}
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close ();
-			}
+			} );
 
 			return tableList;
 		}
@@ -144,37 +138,27 @@ namespace AutoNag
 		{
 			List< Task > taskList = new List< Task >();
 
-			lock( locker ) 
+			// Need to join together the results of the selects and then order it
+			StringBuilder queryString = new StringBuilder();
+			foreach ( string taskListName in taskListNames )
 			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
+				queryString.AppendFormat( ( queryString.Length == 0 ) ? 
+					"SELECT *, '{0}' AS 'table_name' FROM [{0}]" : 
+					" UNION ALL SELECT *, '{0}' AS 'table_name' FROM [{0}]", taskListName );
+			}
 
-				// Need to join together the results of the selects and then order it
-				StringBuilder queryString = new StringBuilder();
-				foreach ( string taskListName in taskListNames )
-				{
-					queryString.AppendFormat( ( queryString.Length == 0 ) ? 
-						"SELECT *, '{0}' AS 'table_name' FROM [{0}]" : 
-						" UNION ALL SELECT *, '{0}' AS 'table_name' FROM [{0}]", taskListName );
-				}
+			// Finally add the sort clause
+			queryString.Append( GetSortOrderClause( sortOrder ) );
 
-				// Finally add the sort clause
-				queryString.Append( GetSortOrderClause( sortOrder ) );
-
-				// Execute the query
-				SqliteDataReader reader = new SqliteCommand( queryString.ToString(), connection ).ExecuteReader();
-
+			// Get the tasks from the DB
+			ExecuteReaderCommand( queryString.ToString(), delegate( SqliteDataReader reader )
+			{
 				// Extract the tasks from the reader and add to the list
 				while ( reader.Read() == true )
 				{
 					taskList.Add( FromReader( reader ) );
 				}
-					
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close ();
-			}
+			} );
 
 			return taskList;
 		}
@@ -188,24 +172,15 @@ namespace AutoNag
 		{
 			Task item = new Task();
 
-			lock( locker )
+			// Get the required task and extract it from the reader
+			ExecuteReaderCommand( string.Format( "SELECT *, '{0}' AS 'table_name' FROM [{0}] WHERE [Identity] = {1}", taskListName, id ), 
+				delegate( SqliteDataReader reader )
 			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT *, '{0}' AS 'table_name' FROM [{0}] WHERE [Identity] = {1}", taskListName, id ), 
-					connection ).ExecuteReader();
-
 				if ( reader.Read() == true )
 				{
 					item = FromReader( reader );
 				}
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close ();
-			}
+			} );
 
 			return item;
 		}
@@ -297,25 +272,15 @@ namespace AutoNag
 			// Create the ListColourTableName if it does not exist
 			ExecuteSimpleNonQuery( string.Format( "CREATE TABLE IF NOT EXISTS [{0}] ( ListName TEXT PRIMARY KEY ASC, Colour TEXT )", ListColourTableName ) );
 
-			lock( locker ) 
+			// Get the contents of the ListColourTableName
+			ExecuteReaderCommand( string.Format( "SELECT * FROM [{0}]", ListColourTableName ), delegate( SqliteDataReader reader )
 			{
-				SqliteConnection connection = new SqliteConnection( connectionString );
-				connection.Open();
-
-				// Get the contents of the ListColourTableName
-				SqliteDataReader reader = new SqliteCommand( string.Format( "SELECT * FROM [{0}]", ListColourTableName ), connection ).ExecuteReader();
-
 				// Extract the list names and colours from the reader and add to the dictionary
 				while ( reader.Read() == true )
 				{
 					colourList[ reader.GetString( 0 ) ] = ListColourHelper.StringToColourEnum( reader.GetString( 1 ) );
 				}
-
-				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
-				// So just begin a transaction here
-				connection.BeginTransaction();
-				connection.Close ();
-			}
+			} );
 
 			return colourList;
 		}
@@ -349,9 +314,78 @@ namespace AutoNag
 			ExecuteSimpleNonQuery( string.Format( "DELETE FROM [{0}] WHERE [ListName] = '{1}'", ListColourTableName, listName ) );
 		}
 
+		/// <summary>
+		/// Extract the notification tone name form the database
+		/// </summary>
+		/// <returns>The notification tone.</returns>
+		public string GetNotificationTone()
+		{
+			string notificationTone = "";
+
+			// Create the GeneralItemsTableName if it does not exist
+			ExecuteSimpleNonQuery( string.Format( "CREATE TABLE IF NOT EXISTS [{0}] ( ToneName TEXT PRIMARY KEY ASC )", GeneralItemsTableName ) );
+
+			// Get the contents of the GeneralItemsTableName
+			ExecuteReaderCommand( string.Format( "SELECT * FROM [{0}]", GeneralItemsTableName ), delegate( SqliteDataReader reader )
+			{
+				// Extract the notification tone name from column 0
+				if ( reader.Read() == true )
+				{
+					notificationTone = reader.GetString( 0 );
+				}
+			} );
+
+			return notificationTone;
+		}
+
+		/// <summary>
+		/// Adds the notification tone record
+		/// </summary>
+		/// <param name="toneName">Tone name.</param>
+		public void AddNotificationTone( string toneName )
+		{
+			ExecuteSimpleNonQuery( string.Format( "INSERT INTO [{0}] ( [ToneName] ) VALUES ( '{1}' )", GeneralItemsTableName, toneName ) );
+		}
+
+		/// <summary>
+		/// Updates the notification tone record
+		/// </summary>
+		/// <param name="toneName">Tone name.</param>
+		public void UpdateNotificationTone( string toneName )
+		{
+			ExecuteSimpleNonQuery( string.Format( "UPDATE [{0}] SET [ToneName] = '{1}'", ListColourTableName, toneName ) );
+		}
+
 		//
 		// Private methods
 		//
+
+		/// <summary>
+		/// Delegate definition for the Reader extraction method
+		/// </summary>
+		private delegate void ReaderExtraction( SqliteDataReader reader );
+
+		/// <summary>
+		/// Executes the specified command and pass the resultand reader to the delegate for processing.
+		/// </summary>
+		/// <param name="command">Command.</param>
+		/// <param name="extractionDelegate">Extraction delegate.</param>
+		private void ExecuteReaderCommand( string command, ReaderExtraction extractionDelegate )
+		{
+			lock( locker ) 
+			{
+				SqliteConnection connection = new SqliteConnection( connectionString );
+				connection.Open();
+
+				// Extract the command and extract items from the reader
+				extractionDelegate( new SqliteCommand( command, connection ).ExecuteReader() );
+
+				// There is a bug in Connection.Close such that it generates an error message if a transaction is not active.
+				// So just begin a transaction here
+				connection.BeginTransaction();
+				connection.Close ();
+			}
+		}
 
 		/// <summary>
 		/// Executes the simple non query.
@@ -500,5 +534,10 @@ namespace AutoNag
 		/// The name of the list colour table.
 		/// </summary>
 		private const string ListColourTableName = "ListColour.Table";
+
+		/// <summary>
+		/// The name of the general items table
+		/// </summary>
+		private const string GeneralItemsTableName = "GeneralItems.Table";
 	}
 }

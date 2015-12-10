@@ -15,31 +15,5 @@
 -->
 
 <resources>
-    <string name="widgetName">AutoNag</string>
-    <string name="noData">No data</string>
-    <string name="helpTitle">About AutoNag</string>
-    <string name="settingsKey">settings</string>
-    <string name="helpAboutCategory">About</string>
-    <string name="helpSettingsTitle">AutoNag version 2.1</string>
-    <string name="helpSettingsSummary">Display details</string>
-    <string name="listSettingsKey">displayedList</string>
-    <string name="listSettingsTitle">Currently showing</string>
-    <string name="listSettingsSummary">Change</string>
-    <string name="chooseListKey">chooseList</string>
-    <string name="chooseListTitle">Select list</string>
-    <string name="renameScreenKey">renameScreen</string>
-    <string name="renameScreenTitle">Rename list</string>
-    <string name="createListKey">createList</string>
-    <string name="createListTitle">Create list</string>
-    <string name="createListDialogTitle">Create new list</string>
-    <string name="deleteListKey">deleteScreen</string>
-    <string name="deleteListTitle">Delete list</string>
-    <string name="deleteListDialogTitle">Delete list</string>
-    <string name="widgetListCategory">Current list</string>
-    <string name="widgetCurrentListKey">currentList</string>
-    <string name="widgetSelectListCategory">Available lists</string>
-    <string name="widgetSelectListCategoryKey">availableLists</string>
-    <string name="listManagementCategory">List management</string>
-    <string name="colourListKey">colourScreen</string>
-    <string name="colourListTitle">Change list colour</string>
+<!--    <string name="widgetName">AutoNag</string> -->
 </resources>

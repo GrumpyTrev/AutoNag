@@ -80,7 +80,7 @@ namespace AutoNag
 			View itemView = base.GetView( position, convertView, parent );
 
 			// Set the background and text colour
-			itemView.SetBackgroundResource( ListColourHelper.GetDrawableResource( ListColourHelper.StringToColourEnum( GetItem( position ) ) ) );
+			itemView.SetBackgroundResource( ListColourHelper.GetColourResource( ListColourHelper.StringToColourEnum( GetItem( position ) ) ) );
 			itemView.FindViewById< TextView >( Android.Resource.Id.Text1 ).SetTextColor( Color.Black );
 
 			return itemView;

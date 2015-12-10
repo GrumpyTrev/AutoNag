@@ -109,7 +109,6 @@ namespace AutoNag
 			{
 				Copy();
 			}
-
 			else if ( item.ItemId == Resource.Id.moveTask ) 
 			{
 				Move();

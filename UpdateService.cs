@@ -134,14 +134,14 @@ namespace AutoNag
 			if ( taskToDisplay.Done == true )
 			{
 				// Give it a dimmed background
-				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Drawable.DoneBackground );
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, Resource.Color.itemDoneBackground );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Visible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskDoneText ) );
 			}
 			else
 			{
 				// Set the background resource according to the list name
-				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetDrawableResource( taskToDisplay.ListName ) );
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetColourResource( taskToDisplay.ListName ) );
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Invisible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskNormalText ) );
 			}
@@ -249,22 +249,9 @@ namespace AutoNag
 
 			if ( taskListName.Length > 0 )
 			{
-				List< string > listNames = null;
-
-				// Check for the special combined list name
-				if ( taskListName == SettingsActivity.CombinedListName )
-				{
-					// Get all of the list names
-					listNames = ( List< string > )TaskRepository.GetTaskTables();
-				}
-				else
-				{
-					// Use the single list name
-					listNames = new List<string>{ taskListName };
-				}
-
-				// Load the tasks with optional sort order
-				tasks = TaskRepository.GetTasks( listNames, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
+				// Load the tasks with optional sort order. The task list will either contain all task list names or just the single specified name
+				tasks = TaskRepository.GetTasks( taskListName == SettingsActivity.CombinedListName ? ( List< string > )TaskRepository.GetTaskTables() :
+					new List<string>{ taskListName }, SortOrder.GetTaskSortOrder( savedContext, widgetIdentity ) );
 
 				// Save the count of items to be displayed on the widget
 				TaskCountPersistence.SetTaskCount( savedContext, widgetIdentity, tasks.Count );

@@ -86,8 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\values\strings.xml" />
-    <AndroidResource Include="Resources\drawable\DoneBackground.xml" />
-    <AndroidResource Include="Resources\drawable\GreyedOut.xml" />
     <AndroidResource Include="Resources\menu\DetailsScreenMenu.xml" />
     <AndroidResource Include="Resources\drawable\widgetBackground.xml" />
     <AndroidResource Include="Resources\xml\WidgetProvider.xml" />
@@ -120,18 +118,12 @@
     <AndroidResource Include="Resources\layout\DueDateSelection.xml" />
     <AndroidResource Include="Resources\layout-land\DueDateSelection.xml" />
     <AndroidResource Include="Resources\xml\Preferences.xml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackgroundYellow.xml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackgroundGreen.xml" />
     <AndroidResource Include="Resources\drawable\ItemLeftBorder.xml" />
-    <AndroidResource Include="Resources\drawable\Pressed.xml" />
     <AndroidResource Include="Resources\drawable\TextBorder.xml" />
     <AndroidResource Include="Resources\layout\TaskDetails.xml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackgroundBlue.xml" />
     <AndroidResource Include="Resources\layout\ListNameItem.axml" />
     <AndroidResource Include="Resources\layout\ListName.axml" />
     <AndroidResource Include="Resources\layout\DialogueEditText.axml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackgroundPink.xml" />
-    <AndroidResource Include="Resources\drawable\NotDoneBackgroundBeige.xml" />
     <AndroidResource Include="Resources\drawable\ic_menu_copy.png" />
     <AndroidResource Include="Resources\drawable\ic_menu_set_as.png" />
   </ItemGroup>

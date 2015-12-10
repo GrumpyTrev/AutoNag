@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-	android:key="@string/settingsKey"
+	android:key="settings"
 	android:persistent="false" >
 	<PreferenceCategory
-		android:title="@string/widgetListCategory">
+		android:title="Current list">
 		<autonag.CustomPreference
-			android:key="@string/widgetCurrentListKey"
+			android:key="currentList"
 	        android:title="" />
 	</PreferenceCategory>
 	<PreferenceCategory
-		android:title="@string/widgetSelectListCategory"
-		android:key="@string/widgetSelectListCategoryKey" />
+		android:title="Available lists"
+		android:key="availableLists" />
 	<PreferenceCategory
-		android:title="@string/listManagementCategory" >
+		android:title="List management" >
 		<autonag.CustomPreference
-			android:key="@string/createListKey"
-	        android:title="@string/createListTitle" />
+			android:key="createList"
+	        android:title="Create list" />
 	</PreferenceCategory>
 	<PreferenceCategory
-		android:title="@string/helpAboutCategory" >
+		android:title="About" >
 	    <Preference
-	        android:title="@string/helpSettingsTitle"
-	        android:summary="@string/helpSettingsSummary" >
+	        android:title="AutoNag version 2.1"
+	        android:summary="Display details" >
 	        <intent
 	        	android:targetPackage="AutoNag.AutoNag"
 	            android:targetClass="autonag.HelpDialogueActivity" />

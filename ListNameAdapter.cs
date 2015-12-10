@@ -74,7 +74,7 @@ namespace AutoNag
 			View itemView = ( convertView != null ) ? convertView :
 				( ( LayoutInflater  )listContext.GetSystemService( Context.LayoutInflaterService ) ).Inflate( Resource.Layout.ListNameItem, null );
 
-			itemView.SetBackgroundResource( ListColourHelper.GetDrawableResource( availableListNames[ position ] ) );
+			itemView.SetBackgroundResource( ListColourHelper.GetColourResource( availableListNames[ position ] ) );
 			itemView.FindViewById< TextView >( Resource.Id.title ).Text = availableListNames[ position ];
 
 			return itemView;

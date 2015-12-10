@@ -11,7 +11,7 @@
 // File Description
 // ------------------
 //
-// Purpose:      The NotificationCancelReceiver is called when a notification is cancelled fromthe notification screen.
+// Purpose:      The NotificationCancelReceiver is called when a notification is cancelled from the notification screen.
 //				 Turn off the notification in the associated task
 //				 
 // Description:  As purpose

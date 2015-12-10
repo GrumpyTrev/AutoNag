@@ -42,7 +42,7 @@ using System.Collections.Generic;
 
 namespace AutoNag
 {
-	[BroadcastReceiver (Label = "@string/widgetName") ]
+	[BroadcastReceiver (Label = "AutoNag") ]
 	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction, ListRenamedAction, 
 		ListDeletedAction, ListColourAction } ) ]
 	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" ) ]

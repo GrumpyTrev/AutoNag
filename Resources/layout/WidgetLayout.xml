@@ -12,7 +12,7 @@
         android:background="#ff2d2d2d">
         <TextView
             android:id="@+id/headerText"
-            android:text="@string/widgetName"
+            android:text="AutoNag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#ffe2e2e2"
@@ -88,7 +88,7 @@
             android:layout_marginTop="12dip"
             android:padding="10dip"
             android:gravity="center"
-            android:text="@string/noData"
+            android:text="No data"
             android:textColor="#ffffffff" />
     </LinearLayout>
 </LinearLayout>
