@@ -23,7 +23,7 @@
 //
 // %version:  1 %
 //
-// (c) Copyright 2014 Trevor Simmonds.
+// (c) Copyright 2015 Trevor Simmonds.
 // This software is protected by copyright, the design of any 
 // article recorded in the software is protected by design 
 // right and the information contained in the software is 
@@ -31,7 +31,7 @@
 // may not be reproduced and the information contained in the 
 // software may not be used or disclosed except with the
 // prior written permission of and in a manner permitted by
-// the proprietors Trevor Simmonds (c) 2014
+// the proprietors Trevor Simmonds (c) 2015
 //
 //    Copyright Holders:
 //       Trevor Simmonds,
@@ -140,8 +140,22 @@ namespace AutoNag
 			}
 			else
 			{
-				// Set the background resource according to the list name
-				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, ListColourHelper.GetColourResource( taskToDisplay.ListName ) );
+				bool overdue = false;
+				if ( SettingsPersistence.HighlightOverdueTasksProperty == true )
+				{
+					// Determine whether or not this task is overdue.
+					// A task is overdue if it has a due date and the 'days' value of the current date is > than the 'days' value of the
+					// due date
+					if ( taskToDisplay.DueDate != DateTime.MinValue )
+					{
+						overdue = ( DateTime.Now - taskToDisplay.DueDate ).Days > 0;
+					}
+				}
+
+				// Set the background resource according to the list name or the overdue colour
+				view.SetInt( Resource.Id.overlay, BackgroundResourceMethodName, 
+					overdue ? ListColourHelper.OverdueColourResourceProperty : ListColourHelper.GetColourResource( taskToDisplay.ListName ) );
+
 				view.SetViewVisibility( Resource.Id.taskDone, ViewStates.Invisible );
 				view.SetTextColor( Resource.Id.taskName, savedContext.Resources.GetColor( Resource.Color.taskNormalText ) );
 			}

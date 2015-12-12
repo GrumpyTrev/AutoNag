@@ -170,6 +170,24 @@ namespace AutoNag
 			InstanceProperty.sqliteDatabase.RemoveListColour( listName );
 		}
 
+		/// <summary>
+		/// Extract the notification tone name and overdue options from the database
+		/// </summary>
+		/// <returns>The notification tone.</returns>
+		public static string GetOptions( ref bool highlightOverdueTasks )
+		{
+			return InstanceProperty.sqliteDatabase.GetOptions( ref highlightOverdueTasks );
+		}
+
+		/// <summary>
+		/// Updates the notification tone and overdue options
+		/// </summary>
+		/// <param name="toneName">Tone name.</param>
+		public static void SetOptions( string toneName, bool highlightOverdueTasks )
+		{
+			InstanceProperty.sqliteDatabase.SetOptions( toneName, highlightOverdueTasks );
+		}
+
 		//
 		// Private methods
 		// 

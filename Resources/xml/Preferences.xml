@@ -18,9 +18,22 @@
 	        android:title="Create list" />
 	</PreferenceCategory>
 	<PreferenceCategory
+		android:title="Notification and overdue"
+		android:key="userOptions">
+	    <autonag.NotificationTonePreference
+	        android:title="Notification tone"
+	        android:summary="TBD" >
+	    </autonag.NotificationTonePreference>
+	    <autonag.OverduePreference
+	        android:title="Highlight overdue tasks"
+	        android:summaryOff="Turn highlighting on"
+	        android:summaryOn="Turn highlighting off" >
+	    </autonag.OverduePreference>
+	</PreferenceCategory>
+	<PreferenceCategory
 		android:title="About" >
 	    <Preference
-	        android:title="AutoNag version 2.1"
+	        android:title="AutoNag version 3.0"
 	        android:summary="Display details" >
 	        <intent
 	        	android:targetPackage="AutoNag.AutoNag"

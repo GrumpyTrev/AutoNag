@@ -68,9 +68,9 @@ namespace AutoNag
 			// Now get the names and state for each entry
 			for ( int itemIndex = 0; itemIndex < numberOfItems; ++itemIndex )
 			{
-				string sortName = preferences.GetString( string.Format( NameFormat, widgetId, itemIndex ), "" );
-				bool state = preferences.GetBoolean( string.Format( StateFormat, widgetId, itemIndex ), false );
-				sortOrders.Add( new SortOrderState( ( Task.SortOrders )Enum.Parse( typeof( Task.SortOrders ), sortName ), state ) );
+				sortOrders.Add( new SortOrderState( ( Task.SortOrders )Enum.Parse( typeof( Task.SortOrders ), 
+					preferences.GetString( string.Format( NameFormat, widgetId, itemIndex ), "" ) ), 
+					preferences.GetBoolean( string.Format( StateFormat, widgetId, itemIndex ), false ) ) );
 			}
 
 			return sortOrders;

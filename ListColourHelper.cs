@@ -120,6 +120,18 @@ namespace AutoNag
 			return result;
 		}
 
+		/// <summary>
+		/// Gets the overdue colour resource property.
+		/// </summary>
+		/// <value>The overdue colour resource property.</value>
+		public static int OverdueColourResourceProperty
+		{
+			get
+			{
+				return Resource.Color.itemOverdueBackground;
+			}
+		}
+
 		//
 		// Private methods
 		//

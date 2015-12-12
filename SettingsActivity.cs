@@ -76,25 +76,17 @@ namespace AutoNag
 		/// <returns>To be added.</returns>
 		public bool OnMenuItemClick( IMenuItem item )
 		{
-			switch ( item.ItemId )
+			if ( item.ItemId == 0 )
 			{
-				case 0:
-				{
-					OnRenameList( contextMenuList );
-					break;
-				}
-
-				case 1:
-				{
-					OnDeleteList( contextMenuList );
-					break;
-				}
-
-				case 2:
-				{
-					OnColourList( contextMenuList );
-					break;
-				}
+				OnRenameList( contextMenuList );
+			}
+			else if ( item.ItemId == 1 )
+			{
+				OnDeleteList( contextMenuList );
+			}
+			else
+			{
+				OnColourList( contextMenuList );
 			}
 
 			return true;
@@ -132,14 +124,13 @@ namespace AutoNag
 			PreferenceScreen screen = ( PreferenceScreen )FindPreference( "settings" );
 
 			currentListPreference = ( CustomPreference )screen.FindPreference( "currentList" );
-			createPreference = ( CustomPreference )screen.FindPreference( "createList" );
 			availableListsCategory = ( PreferenceCategory )screen.FindPreference( "availableLists" );
 
 			// Initialise any items that show task list names
 			InitialiseTaskListItem();
 
 			// Set the selection delegate for the createPreference
-			createPreference.SelectionProperty = OnCreateList;
+			( ( CustomPreference )screen.FindPreference( "createList" ) ).SelectionProperty = OnCreateList;
 
 			// And the context menu for the currentListPreference
 			currentListPreference.ContextMenuProperty = OnContextMenuRequired;
@@ -241,7 +232,7 @@ namespace AutoNag
 			ShowEditTextDialogue( string.Format( "Rename <{0}>", taskListName ), taskListName, ( newName ) =>
 			{
 				// Check if the new name is valid
-				if ( TaskRepository.GetTaskTables().Contains( newName ) == true )
+				if ( ( TaskRepository.GetTaskTables().Contains( newName ) == true ) || ( newName == CombinedListName ) )
 				{
 					// A list with this name already exists
 					// Tell the user
@@ -395,7 +386,7 @@ namespace AutoNag
 			// Get new name from the user
 			ShowEditTextDialogue( "Create new list", "", ( listName ) =>
 			{
-				if ( TaskRepository.GetTaskTables().Contains( listName ) == true )
+				if ( ( TaskRepository.GetTaskTables().Contains( listName ) == true ) || ( listName == CombinedListName ) )
 				{
 					// A list with this name already exists
 					// Tell the user
@@ -406,11 +397,10 @@ namespace AutoNag
 				}
 				else
 				{
-					if ( TaskRepository.CreateTaskList( listName ) == true )
-					{
-						// Re-initialise any items showing the list names
-						InitialiseTaskListItem();
-					}
+					TaskRepository.CreateTaskList( listName );
+
+					// Re-initialise any items showing the list names
+					InitialiseTaskListItem();
 				}
 			});
 		}
@@ -504,11 +494,6 @@ namespace AutoNag
 		/// The name of the current list.
 		/// </summary>
 		private string currentListName = "";
-
-		/// <summary>
-		/// The create list preference.
-		/// </summary>
-		private CustomPreference createPreference = null;
 
 		/// <summary>
 		/// The available lists category.

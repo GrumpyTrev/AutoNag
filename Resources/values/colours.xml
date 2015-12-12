@@ -6,6 +6,7 @@
 	<color name="itemBlueBackground">#7FFFFF</color>
 	<color name="itemPinkBackground">#FFB6C1</color>
 	<color name="itemBeigeBackground">#F5F5DC</color>
+	<color name="itemOverdueBackground">#FF5454</color> <!-- Red -->
 	<color name="itemDoneBackground">#E0E0E0</color> <!-- Grey -->
 	<color name="taskNormalText">#191919</color> <!-- 90% Black -->
 	<color name="taskDoneText">#666666</color> <!-- 60% Black -->

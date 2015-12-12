@@ -90,11 +90,7 @@ namespace AutoNag
 			foreach ( KeyValuePair< string, object > item in persistenceContext.GetSharedPreferences( PreferenceFileName, FileCreationMode.Private ).All )
 			{
 				// The string is of the form {0}ListName - so remove the suffix and convert to an int
-				int index = item.Key.LastIndexOf( ListNameSuffix );
-				if ( index != -1 )
-				{
-					items.Add( new KeyValuePair<int, string>( Convert.ToInt32( item.Key.Remove( index ) ), ( string )item.Value ) );
-				}
+				items.Add( new KeyValuePair<int, string>( Convert.ToInt32( item.Key.Remove( item.Key.LastIndexOf( ListNameSuffix ) ) ), ( string )item.Value ) );
 			}
 
 			return items;

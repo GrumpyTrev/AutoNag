@@ -63,10 +63,9 @@ namespace AutoNag
 		public static void SetAlarm( string taskListName, int taskIdentity, string taskName, DateTime alarmDate, Context intentContext )
 		{
 			// Convert to UTC time and adust for difference between Java and .net time 
-			long utcAlarmTimeInMillis = TimeZoneInfo.ConvertTimeToUtc( alarmDate ).AddSeconds( -epochDifferenceInSeconds ).Ticks / 10000;
-
 			( ( AlarmManager )intentContext.GetSystemService( Context.AlarmService ) )
-				.Set( AlarmType.RtcWakeup, utcAlarmTimeInMillis, PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
+				.Set( AlarmType.RtcWakeup, TimeZoneInfo.ConvertTimeToUtc( alarmDate ).AddSeconds( -epochDifferenceInSeconds ).Ticks / 10000, 
+					PendingIntent.GetBroadcast( intentContext, WidgetIntent.GetRequestCode( taskIdentity, taskListName ), 
 					new WidgetIntent( intentContext, typeof( AlarmReceiver ) ).SetTaskIdentity( taskIdentity ).SetTaskName( taskName )
 						.SetTaskListName( taskListName ), 0) );
 		}

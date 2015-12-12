@@ -44,7 +44,7 @@ namespace AutoNag
 {
 	[BroadcastReceiver (Label = "AutoNag") ]
 	[IntentFilter (new string [] { "android.appwidget.action.APPWIDGET_UPDATE", UpdatedAction, LoadedAction, SortAction, ListChangedAction, ListRenamedAction, 
-		ListDeletedAction, ListColourAction } ) ]
+		ListDeletedAction, ListColourAction, HighlightOverdueAction } ) ]
 	[MetaData ( "android.appwidget.provider", Resource = "@xml/widgetprovider" ) ]
 	/// <summary>
 	/// The AutoNagWidget class controls the display of tasks within an AppWidget on the home screen.
@@ -68,7 +68,7 @@ namespace AutoNag
 			int widgetId = wrappedIntent.WidgetIdProperty;
 			string taskListName = wrappedIntent.TaskListNameProperty;
 
-			Android.Util.Log.Debug( "AutoNagWidget.OnReceive", string.Format( "Widget <{0}> list <{1}> action <{2}>", widgetId, taskListName, intent.Action ) );
+//			Android.Util.Log.Debug( "AutoNagWidget.OnReceive", string.Format( "Widget <{0}> list <{1}> action <{2}>", widgetId, taskListName, intent.Action ) );
 
 			switch ( intent.Action )
 			{
@@ -78,7 +78,7 @@ namespace AutoNag
 					// Notify any widgets associated with task list to update their data
 					foreach ( int notificationWidgetId in appWidgetIds )
 					{
-						string displayedList =  ListNamePersistence.GetListName( context, notificationWidgetId );
+						string displayedList = ListNamePersistence.GetListName( context, notificationWidgetId );
 						if ( ( displayedList == taskListName ) || ( displayedList == SettingsActivity.CombinedListName ) )
 						{
 							appManager.NotifyAppWidgetViewDataChanged( notificationWidgetId, Resource.Id.listView );
@@ -96,20 +96,14 @@ namespace AutoNag
 
 				case SortAction:
 				{
-					// Update the SortAction class associated with the specific widget
-					// Get the index of the sort icon that has been clicked on
-					int iconIndex = wrappedIntent.IconIndexProperty;
-					if ( iconIndex != -1 )
-					{
-						// Process the click event associated with the icon
-						SortOrder.ProcessClickEvent( context, widgetId, iconIndex );
+					// Process the click event associated with the icon
+					SortOrder.ProcessClickEvent( context, widgetId, wrappedIntent.IconIndexProperty );
 
-						// Update the sort icons
-						appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
+					// Update the sort icons
+					appManager.UpdateAppWidget( widgetId, RenderWidgetContents( context, widgetId ) );
 
-						// Force the redisplaying of the data
-						appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
-					}
+					// Force the redisplaying of the data
+					appManager.NotifyAppWidgetViewDataChanged( widgetId, Resource.Id.listView );
 					break;
 				}
 
@@ -135,6 +129,7 @@ namespace AutoNag
 					break;
 				}
 
+				case HighlightOverdueAction:
 				case ListDeletedAction:
 				{
 					// Re-display all the widgets in case one of them was displaying the deleted task list
@@ -175,6 +170,7 @@ namespace AutoNag
 		public const string ListRenamedAction = "AutoNag.LIST_RENAMED_ACTION";
 		public const string ListDeletedAction = "AutoNag.LIST_DELETED_ACTION";
 		public const string ListColourAction = "AutoNag.LIST_COLOUR_ACTION";
+		public const string HighlightOverdueAction = "AutoNag.HIGHLIGHT_OVERDUE_ACTION";
 
 		//
 		// Private methods

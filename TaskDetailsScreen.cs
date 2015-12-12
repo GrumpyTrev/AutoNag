@@ -72,11 +72,7 @@ namespace AutoNag
 			// Hide delete item if new task
 			if ( task.ID == 0 )
 			{
-				IMenuItem item = menu.FindItem( Resource.Id.deleteTask );
-				if ( item != null )
-				{
-					item.SetVisible( false );
-				}
+				menu.FindItem( Resource.Id.deleteTask ).SetVisible( false );
 			}
 
 			// Get access to the Save item. This item is shown at start-up and removed at OnResume.
@@ -163,14 +159,7 @@ namespace AutoNag
 		public void OnNotificationCleared()
 		{
 			// Remove the hours and minutes from the due date
-			displayedDueDate = new DateTime( displayedDueDate.Year, displayedDueDate.Month, displayedDueDate.Day, 0, 0, 0 );
-
-			// Clear the notification flag
-			displayedNotification = false;
-			ShowNotificationImage();
-
-			// Check if the save icon should be displayed
-			UpdateSaveState();
+			OnNotificationSet( 0, 0 );
 		}
 
 		/// <summary>

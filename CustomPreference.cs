@@ -93,14 +93,6 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AutoNag.CustomPreference"/> class.
-		/// </summary>
-		/// <param name="viewContext">View context.</param>
-		public CustomPreference( Context viewContext ) : base( viewContext )
-		{
-		}
-
-		/// <summary>
 		/// Sets the colour resource property.
 		/// If a view has already been bound then set the background
 		/// </summary>

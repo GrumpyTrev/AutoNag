@@ -4,32 +4,30 @@ temporary paralysis, halitosis, spontaneous combustion,
 road rash, and or premature hair loss.
 
 <h3>Intoduction</h3>
-Simple note/todo list application with a Widget front-end.<br>
-Each note consists of a Task Name and a Note field. The Note field can be of any length.<br>
-The note can be given a Priority, a Due Date, a Notification Time, and can be marked as Done. <br>
-The display of notes on the Widget can be sorted by any combination of Done, Priority and Due Date.<br>
+Simple task/todo list application with a Widget front-end.<br>
+Each task consists of a Task Name and a Note field. The Note field can be of any length.<br>
+The task can be given a Priority, a Due Date, a Notification Time, and can be marked as Done.<br>
+The display of task on the Widget can be sorted by any combination of Done, Priority and Due Date.<br>
+
+<h3>Notifications</h3>
+Setting a Due Date and Notification Time for a task causes a notification to be raised at the specified time/date.<br>
+Clicking on the notification causes the associated task details to be displayed..<br>
+ 
+<h3>Support for multiple task lists</h3>
+AutoNag supports multiple task lists.<br>
+The name of the list currently being displayed on a Widget is shown at the top together with the number of entries in the list.<br>
+Clicking on the list name displays the AutoNag settings screen. This screen allows the list displayed on the Widget to be selected, and allows lists to be 
+deleted, renamed and coloured (using a context menu displayed by long-clicking on the list name). Other options allow new task lists to be created, 
+the notification tone to be altered and overdue tasks to be highlighted.<br>
+Any number of AutoNag Widgets can be displayed. Each widget can display different lists, or the same list<br>
 
 <h3>Support for combined lists</h3>
-As of Version 2.1 AutoNag allows all of the task items to be shown in a single combined list.<br>
+AutoNag allows all of the task items to be shown in a single combined list.<br>
 A new list "Combined list" has been added to the end of the "Available lists" section on the settings page.
 By selecting this list all of the task items will be shown in the Widget with the current sort order applied.
 
 <h3>Copying and moving tasks</h3>
-As of Version 2.1 tasks can be copied or moved from one list to another, either by using the icons displayed
-on the task header or from the standard menu button.
-
-<h3>Support for multiple notes lists</h3>
-As of Version 2.0 AutoNag supports multiple note lists.<br>
-The name of the list currently being displayed on a Widget is shown at the top together with the number of entries in the list.<br>
-Clicking on the list name displays the AutoNag settings screen. This screen allows the list displayed on the Widget to be selected, and allows lists to be 
-created, deleted, renamed and coloured.<br>
-Any number of AutoNag Widgets can be displayed. Each widget can display different lists, or the same list<br>
-
-<h3>Version 2.1 - Known Problems and Missing Features</h3>
-1) No support for importing or exporting tasks<br>
-2) Task list configuration should be via context menus<br>
-3) Copy and move options should be from a menu icon on the task header<br>
-
+Tasks can be copied or moved from one list to another using options on the standard menu button.
 
 <h3>Licensing</h3>
 Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 

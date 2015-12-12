@@ -119,7 +119,7 @@ namespace AutoNag
 				while ( reader.Read() == true )
 				{
 					string tableName = reader.GetString( 0 );
-					if ( tableName != ListColourTableName )
+					if ( ( tableName != ListColourTableName ) && ( tableName != GeneralItemsTableName ) )
 					{
 						tableList.Add( tableName );
 					}
@@ -200,17 +200,18 @@ namespace AutoNag
 				connection.Open();
 
 				SqliteCommand command = connection.CreateCommand();
-				command.Parameters.AddWithValue( null, item.Name );
-				command.Parameters.AddWithValue( null, item.Notes );
-				command.Parameters.AddWithValue( null, item.Done );
-				command.Parameters.AddWithValue( null, item.NotificationRequired );
-				command.Parameters.AddWithValue( null, item.Priority );
+				SqliteParameterCollection parameters = command.Parameters;
+
+				parameters.AddWithValue( null, item.Name );
+				parameters.AddWithValue( null, item.Notes );
+				parameters.AddWithValue( null, item.Done );
+				parameters.AddWithValue( null, item.NotificationRequired );
+				parameters.AddWithValue( null, item.Priority );
 
 				// If the DueDate is DateTime.Min then store it as DateTime.Max to preserve date sort order
-				DateTime dueDateToStore = ( item.DueDate == DateTime.MinValue ) ? DateTime.MaxValue : item.DueDate;
-				command.Parameters.AddWithValue( null, dueDateToStore.ToString( DueDateFormat ) );
+				parameters.AddWithValue( null, ( ( item.DueDate == DateTime.MinValue ) ? DateTime.MaxValue : item.DueDate ).ToString( DueDateFormat ) );
 
-				command.Parameters.AddWithValue( null, item.ModifiedDate.ToString( ModifiedDateFormat ) );
+				parameters.AddWithValue( null, item.ModifiedDate.ToString( ModifiedDateFormat ) );
 
 				// Either update an existing row or add a new one
 				if ( item.ID != 0 )
@@ -218,7 +219,7 @@ namespace AutoNag
 					command.CommandText = string.Format( 
 						"UPDATE [{0}] SET [Name] = ?, [Notes] = ?, [Done] = ?, [NotificationRequired] = ?, [Priority] = ?, [DueDate] = ?, [ModifiedDate] = ? WHERE [Identity] = ?", 
 						item.ListName );
-					command.Parameters.AddWithValue( null, item.ID );
+					parameters.AddWithValue( null, item.ID );
 				}
 				else
 				{
@@ -315,46 +316,49 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// Extract the notification tone name form the database
+		/// Extract the notification tone name and overdue options from the database
 		/// </summary>
 		/// <returns>The notification tone.</returns>
-		public string GetNotificationTone()
+		public string GetOptions( ref bool highlightOverdueTasks )
 		{
 			string notificationTone = "";
+			bool localhighlightOverdueTasks = false;
 
 			// Create the GeneralItemsTableName if it does not exist
-			ExecuteSimpleNonQuery( string.Format( "CREATE TABLE IF NOT EXISTS [{0}] ( ToneName TEXT PRIMARY KEY ASC )", GeneralItemsTableName ) );
+			CreateGeneralTable();
 
 			// Get the contents of the GeneralItemsTableName
 			ExecuteReaderCommand( string.Format( "SELECT * FROM [{0}]", GeneralItemsTableName ), delegate( SqliteDataReader reader )
 			{
-				// Extract the notification tone name from column 0
+				// Extract the notification tone name from column 0 and the overdue option from column 1
 				if ( reader.Read() == true )
 				{
 					notificationTone = reader.GetString( 0 );
+
+					// Getting a boolean works here even though it is stored as an int in the db.
+					localhighlightOverdueTasks = reader.GetBoolean( 1 );
 				}
 			} );
 
+			highlightOverdueTasks = localhighlightOverdueTasks;
 			return notificationTone;
 		}
 
 		/// <summary>
-		/// Adds the notification tone record
+		/// Updates the notification tone and overdue options
 		/// </summary>
 		/// <param name="toneName">Tone name.</param>
-		public void AddNotificationTone( string toneName )
+		public void SetOptions( string toneName, bool highlightOverdueTasks )
 		{
-			ExecuteSimpleNonQuery( string.Format( "INSERT INTO [{0}] ( [ToneName] ) VALUES ( '{1}' )", GeneralItemsTableName, toneName ) );
-		}
+			// Always drop the table and recreate it
+			DeleteList( GeneralItemsTableName ); 
+			CreateGeneralTable();
 
-		/// <summary>
-		/// Updates the notification tone record
-		/// </summary>
-		/// <param name="toneName">Tone name.</param>
-		public void UpdateNotificationTone( string toneName )
-		{
-			ExecuteSimpleNonQuery( string.Format( "UPDATE [{0}] SET [ToneName] = '{1}'", ListColourTableName, toneName ) );
-		}
+			// The highlightOverdueTasks boolean must be explicitly stored as 1/0. When reading back an implicit conversion to a bool is performed
+			// by the reader call
+			ExecuteSimpleNonQuery( string.Format( "INSERT INTO [{0}] ( [ToneName], [Overdue] ) VALUES ( '{1}', '{2}' )", GeneralItemsTableName, toneName,
+				highlightOverdueTasks ? 1 : 0 ) );
+		} 
 
 		//
 		// Private methods
@@ -502,11 +506,19 @@ namespace AutoNag
 
 				if ( sortOrderBuilder.Length > 0 )
 				{
-					orderClause = string.Format( " ORDER BY {0}", sortOrderBuilder.ToString() );
+					orderClause = sortOrderBuilder.Insert( 0, " ORDER BY " ).ToString();
 				}
 			}
 
 			return orderClause;
+		}
+
+		/// <summary>
+		/// Creates the general table.
+		/// </summary>
+		private void CreateGeneralTable()
+		{
+			ExecuteSimpleNonQuery( string.Format( "CREATE TABLE IF NOT EXISTS [{0}] ( ToneName TEXT PRIMARY KEY ASC, Overdue INTEGER )", GeneralItemsTableName ) );
 		}
 
 		//

@@ -59,9 +59,6 @@ namespace AutoNag
 		/// <param name="listName">The list name</param>
 		public static ListColourEnum GetListColour( string listName )
 		{
-			// Load the collection if required
-			LoadCollection();
-
 			// Is there an entry for this list
 			if ( listColourCollection.ContainsKey( listName ) == false )
 			{
@@ -82,9 +79,6 @@ namespace AutoNag
 		/// <param name="newColour">New colour.</param>
 		public static void SetListColour( string listName, ListColourEnum newColour )
 		{
-			// Load the collection if required
-			LoadCollection();
-
 			// If there is an entry for the list then update it, otherwise create an entry
 			if ( listColourCollection.ContainsKey( listName ) == false )
 			{
@@ -105,9 +99,6 @@ namespace AutoNag
 		/// <param name="listName">List name.</param>
 		public static void RemoveListColour( string listName )
 		{
-			// Load the collection if required
-			LoadCollection();
-
 			// If there is an entry for the list then clear it
 			if ( listColourCollection.ContainsKey( listName ) == true )
 			{
@@ -128,24 +119,21 @@ namespace AutoNag
 		}
 
 		/// <summary>
-		/// Loads the collection.
+		/// Initializes the <see cref="AutoNag.ListColourPersistence"/> class.
 		/// </summary>
-		private static void LoadCollection()
+		static ListColourPersistence()
 		{
 			lock( locker ) 
 			{
-				// Has the collection been loaded yet?
-				if ( listColourCollection == null )
-				{
-					// Create the collection and load it from the database
-					listColourCollection = new Dictionary<string, ListColourEnum>();
-					IDictionary< string, ListColourEnum > colourEntries = TaskRepository.GetListColours();
+				// Create the collection and load it from the database
+				listColourCollection = new Dictionary< string, ListColourEnum >();
+				IDictionary< string, ListColourEnum > colourEntries = TaskRepository.GetListColours();
 
-					foreach ( KeyValuePair< string, ListColourEnum > pair in colourEntries )
-					{
-						listColourCollection.Add( pair.Key, pair.Value );
-					}
+				foreach ( KeyValuePair< string, ListColourEnum > pair in colourEntries )
+				{
+					listColourCollection.Add( pair.Key, pair.Value );
 				}
+
 			}
 		}
 

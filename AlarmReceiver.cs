@@ -79,15 +79,15 @@ namespace AutoNag
 				new WidgetIntent( alarmContext, typeof( NotificationCancelReceiver ) ).SetTaskIdentity( taskID ).SetTaskListName( taskListName ),
 				0 ) ;
 
-			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder( alarmContext )
-				.SetContentTitle( wrappedIntent.TaskNameProperty )
-				.SetContentText( "Click to view" )
-				.SetSmallIcon( Resource.Drawable.icon )
-				.SetContentIntent( viewIntent )
-				.SetDeleteIntent( cancelIntent )
-				.SetSound( RingtoneManager.GetDefaultUri( RingtoneType.Notification ) );
-
-			( ( NotificationManager )alarmContext.GetSystemService( Context.NotificationService ) ).Notify( requestCode, notificationBuilder.Build() );
+			// Build a notification including the above intents and pass it to the notification manager
+			( ( NotificationManager )alarmContext.GetSystemService( Context.NotificationService ) ).Notify( requestCode, 
+				new NotificationCompat.Builder( alarmContext )
+					.SetContentTitle( wrappedIntent.TaskNameProperty )
+					.SetContentText( "Click to view" )
+					.SetSmallIcon( Resource.Drawable.icon )
+					.SetContentIntent( viewIntent )
+					.SetDeleteIntent( cancelIntent )
+					.SetSound( Android.Net.Uri.Parse( SettingsPersistence.NotificationToneProperty ) ).Build() );
 		}
 	}
 }

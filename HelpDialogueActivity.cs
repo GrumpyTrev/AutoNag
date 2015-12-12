@@ -101,15 +101,7 @@ namespace AutoNag
 		/// <param name="id">Identifier.</param>
 		private string ReadRawTextFile( int id ) 
 		{
-			string inputString = "";
-
-			using ( Stream inputStream = Resources.OpenRawResource( id ) )
-			using ( StreamReader reader = new StreamReader( inputStream ) )
-			{
-				inputString = reader.ReadToEnd();
-			}
-
-			return inputString;
+			return new StreamReader( Resources.OpenRawResource( id ) ).ReadToEnd();
 		}
 	}
 }

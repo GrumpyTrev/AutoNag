@@ -17,12 +17,12 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <ReleaseVersion>2.1</ReleaseVersion>
+    <ReleaseVersion>3.0</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>False</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -78,10 +78,11 @@
     <Compile Include="ColourAdapter.cs" />
     <Compile Include="ListPreference.cs" />
     <Compile Include="ListNameAdapter.cs" />
+    <Compile Include="SettingsPersistence.cs" />
+    <Compile Include="NotificationTonePreference.cs" />
+    <Compile Include="OverduePreference.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\AboutResources.txt" />
-    <None Include="Assets\AboutAssets.txt" />
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -143,5 +144,6 @@
     <Folder Include="Resources\drawable-xxhdpi\" />
     <Folder Include="Resources\raw\" />
     <Folder Include="Resources\layout-land\" />
+    <Folder Include="Assets\" />
   </ItemGroup>
 </Project>
