@@ -17,7 +17,7 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <ReleaseVersion>3.0</ReleaseVersion>
+    <ReleaseVersion>3.1</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -81,6 +81,7 @@
     <Compile Include="SettingsPersistence.cs" />
     <Compile Include="NotificationTonePreference.cs" />
     <Compile Include="OverduePreference.cs" />
+    <Compile Include="OverdueTasksRefresher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />

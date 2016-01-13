@@ -68,7 +68,7 @@ namespace AutoNag
 			int widgetId = wrappedIntent.WidgetIdProperty;
 			string taskListName = wrappedIntent.TaskListNameProperty;
 
-//			Android.Util.Log.Debug( "AutoNagWidget.OnReceive", string.Format( "Widget <{0}> list <{1}> action <{2}>", widgetId, taskListName, intent.Action ) );
+			Android.Util.Log.Debug( "AutoNagWidget.OnReceive", string.Format( "Widget <{0}> list <{1}> action <{2}>", widgetId, taskListName, intent.Action ) );
 
 			switch ( intent.Action )
 			{
@@ -157,6 +157,30 @@ namespace AutoNag
 			}
 
 			base.OnUpdate( context, appWidgetManager, appWidgetIds );
+		}
+
+		/// <summary>
+		/// Raises the enabled event.
+		/// </summary>
+		/// <param name="context">Context.</param>
+		public override void OnEnabled(Context context)
+		{
+			base.OnEnabled(context);
+
+			// Start the OverdueTasksRefresher
+			OverdueTasksRefresher.Start();
+		}
+
+		/// <summary>
+		/// Raises the disabled event.
+		/// </summary>
+		/// <param name="context">Context.</param>
+		public override void OnDisabled(Context context)
+		{
+			base.OnDisabled(context);
+
+			// Stop the OverdueTasksRefresher
+			OverdueTasksRefresher.Stop();
 		}
 
 		//
