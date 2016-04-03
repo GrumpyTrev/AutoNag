@@ -7,3 +7,7 @@ Resources/AboutResources.txt
 Resources/Resource.Designer.cs
 Assets/AboutAssets.txt
 AutoNag.userprefs
+*.suo
+/AutoNag.csproj.user
+/packages/Xamarin.Android.Support.v4.23.1.1.1/lib/MonoAndroid403/Xamarin.Android.Support.v4.dll
+/packages/Xamarin.Android.Support.v4.23.1.1.1/Xamarin.Android.Support.v4.23.1.1.1.nupkg
