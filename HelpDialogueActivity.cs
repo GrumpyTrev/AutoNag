@@ -51,7 +51,7 @@ namespace AutoNag
 	/// <summary>
 	/// The HelpDialogueActivity activity displays AutoNag information and copyright details.
 	/// </summary>
-	[Activity (Label = "About AutoNag", Theme = "@style/AppThemeActionBarNoIcon" ) ]
+	[Activity (Label = "About AutoNag", Name = "autonag.HelpDialogueActivity", Theme = "@style/AppThemeActionBarNoIcon" ) ]
 	public class HelpDialogueActivity : Activity
 	{
 		/// <summary>

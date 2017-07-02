@@ -33,7 +33,7 @@
 	<PreferenceCategory
 		android:title="About" >
 	    <Preference
-	        android:title="AutoNag version 3.1"
+	        android:title="AutoNag version 3.2"
 	        android:summary="Display details" >
 	        <intent
 	        	android:targetPackage="AutoNag.AutoNag"
