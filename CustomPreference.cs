@@ -118,10 +118,7 @@ namespace AutoNag
 		/// <param name="menuInfo">Menu info.</param>
 		public void OnCreateContextMenu( IContextMenu menuInterface, View theView, IContextMenuContextMenuInfo menuInfo )
 		{
-			if ( menuDelegate != null )
-			{
-				menuDelegate( Title, menuInterface );
-			}
+			menuDelegate?.Invoke( Title, menuInterface );
 		}
 
 		/// <summary>
@@ -161,29 +158,34 @@ namespace AutoNag
 			base.OnBindView(view);
 			displayView = view;
 
-			if ( menuDelegate != null )
+			// If this view is being reused then unbind the previous preference
+			if ( view.Tag != null )
 			{
-				// Set up a listener to catch when a context menu is required
-				view.SetOnCreateContextMenuListener( this );
-
-				// For some reason setting up a long click listener prevents the OnClick override from being called.
-				// So we need to catch the event itself and process
-				view.Click += (object sender, EventArgs e) => OnClick();
+				( ( CustomPreference )view.Tag ).UnBindView( view );
 			}
+
+			// Set up a listener to catch when a context menu is required
+			view.SetOnCreateContextMenuListener( this );
+
+			// For some reason setting up a long click listener prevents the OnClick override from being called.
+			// So we need to catch the event itself and process
+			view.Click += ViewClick;
+
+			// Link the view to this preference
+			view.Tag = this;
 
 			SetBackground();
 		}
 
-    	/// <summary>
-		/// Processes a click on the preference.
+		/// <summary>
+		/// When a view is being reused unlink this preference from it
 		/// </summary>
-		protected override void OnClick()
+		/// <param name="boundView"></param>
+		protected void UnBindView( View boundView )
 		{
-			base.OnClick();
-			if ( selectionDelegate != null )
-			{
-				selectionDelegate( Title );
-			}
+			boundView.Click -= ViewClick;
+			boundView.SetOnCreateContextMenuListener( null );
+			boundView.Tag = null;
 		}
 
 		//
@@ -200,6 +202,15 @@ namespace AutoNag
 				displayView.SetBackgroundResource( backgroundResource );
 				displayView.FindViewById< TextView >( Android.Resource.Id.Title ).SetTextColor( Color.Black );
 			}
+		}
+
+		/// <summary>
+		/// Processes a click on the preference.
+		/// </summary>
+		private void ViewClick( object sender, EventArgs e )
+		{
+			base.OnClick();
+			selectionDelegate?.Invoke( Title );
 		}
 
 		//

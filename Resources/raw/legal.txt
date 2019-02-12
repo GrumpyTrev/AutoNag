@@ -29,9 +29,8 @@ By selecting this list all of the task items will be shown in the Widget with th
 <h3>Copying and moving tasks</h3>
 Tasks can be copied or moved from one list to another using options on the standard menu button.
 
-<h3>Changes in version 3.2</h3>
-Corrected problem displaying this notice due to framework changes.
-Updated email address.
+<h3>Changes in version 3.3</h3>
+Corrected problem when displaying more than a screenful of lists.
 
 <h3>Licensing</h3>
 Permission is hereby granted, free  of charge, to any person obtaining a  copy  of this  software  and  associated  documentation 

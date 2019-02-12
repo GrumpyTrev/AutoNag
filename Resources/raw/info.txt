@@ -1,6 +1,6 @@
 <h3>AutoNag  Task/Todo Management</h3>
-Version 3.2<br>
-Copyright 2017<br>
+Version 3.3<br>
+Copyright 2019<br>
 
 <b>t.simmonds.chip@gmail.com</b><br><br>
 

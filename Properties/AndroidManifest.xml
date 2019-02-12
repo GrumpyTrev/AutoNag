@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="AutoNag.AutoNag" android:versionCode="3" android:versionName="3.1" android:installLocation="auto">
-	<uses-sdk android:minSdkVersion="14" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="AutoNag.AutoNag" android:versionCode="3" android:versionName="3.3" android:installLocation="auto">
+	<uses-sdk android:targetSdkVersion="24" android:minSdkVersion="15" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<application android:label="AutoNag" android:icon="@drawable/icon" />
