@@ -53,7 +53,7 @@ namespace AutoNag
 	/// The TaskDetailsScreen activity allows the user to display and edit a task
 	/// </summary>
 	[Activity (Label = "Task Details", WindowSoftInputMode = SoftInput.AdjustResize )]			
-	public class TaskDetailsScreen : Activity, NotificationTimeDialogue.NotificationTimeDialogueListener, DueDateDialogue.DueDateDialogueListener
+	public class TaskDetailsScreen : Activity, NotificationTimeDialogue.NotificationTimeDialogueListener, DueDateDialogue.IDueDateDialogueListener
 	{
 		//
 		// Public methods
@@ -171,7 +171,7 @@ namespace AutoNag
 			// If a notification was on the previous date then retain the notification hours and minutes
 			displayedDueDate = dueDate + new TimeSpan( displayedDueDate.Hour, displayedDueDate.Minute, 0 );
 
-			DisplayDueDate();
+            DisplayDueDate();
 
 			// Check if the save icon should be displayed
 			UpdateSaveState();

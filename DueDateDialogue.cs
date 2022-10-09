@@ -54,7 +54,7 @@ namespace AutoNag
 		/// <summary>
 		/// Interface to pass back dialogue results
 		/// </summary>
-		public interface DueDateDialogueListener
+		public interface IDueDateDialogueListener
 		{
 			/// <summary>
 			/// Raises the due date set event.
@@ -83,10 +83,10 @@ namespace AutoNag
 			Bundle dialogueArgs = new Bundle();
 			dialogueArgs.PutLong( DueDateLabel, ( long )( ( ( initialDate == DateTime.MinValue ) ? DateTime.Today : initialDate.Date ) - Seventies ).TotalMilliseconds );
 
-			DueDateDialogue dateDialogue = new DueDateDialogue();
-			dateDialogue.Arguments = dialogueArgs;
-
-			return dateDialogue;
+            return new DueDateDialogue
+            {
+                Arguments = dialogueArgs
+            };
 		}
 
 
@@ -99,7 +99,7 @@ namespace AutoNag
 			base.OnAttach( activity );
 
 			// Save the NotificationTimeDialogueListener interface
-			listener = ( DueDateDialogueListener )activity;
+			listener = ( IDueDateDialogueListener )activity;
 		}
 
 		/// <summary>
@@ -125,6 +125,12 @@ namespace AutoNag
 			// Either get the date from the arguments originally used to start the fragment of the saved date
 			calendarControl.Date = ( savedInstanceState == null ) ? Arguments.GetLong( DueDateLabel ) : savedInstanceState.GetLong( DueDateLabel );
 
+            // Record the date the calendar view is currently set to
+            RecordDueDate();
+
+            // Monitor user changes to the date
+            calendarControl.DateChange += ( o, e ) => { calendarTime = new DateTime( e.Year, e.Month + 1, e.DayOfMonth ); };
+
 			// Set the title
 			Dialog.SetTitle( "Due date" );
 
@@ -136,9 +142,7 @@ namespace AutoNag
 			layoutView.FindViewById< Button >( Resource.Id.dueDateSetButton ).Click += ( buttonSender, buttonEvents ) =>
 			{
 				// Pass back the notification. Use a GregorianCalendar in order to keep track of summer time
-				GregorianCalendar setDate = new GregorianCalendar();
-				setDate.TimeInMillis = calendarControl.Date;
-				listener.OnDueDateSet( new DateTime( setDate.Get( CalendarField.Year ), setDate.Get( CalendarField.Month ) + 1, setDate.Get( CalendarField.DayOfMonth ) ) );
+				listener.OnDueDateSet( calendarTime );
 				Dismiss();
 			};
 			layoutView.FindViewById< Button >( Resource.Id.dueDateClearButton ).Click += ( buttonSender, buttonEvents ) =>
@@ -151,27 +155,39 @@ namespace AutoNag
 			return layoutView;
 		}
 
-		/// <summary>
-		/// Called to ask the fragment to save its current dynamic state, so it can later be reconstructed in a new instance of its process is
-		/// restarted.
-		/// The date held by the calendar view has to be saved because it is not (for some reason) saved automatically
-		/// </summary>
-		/// <param name="outState">Bundle in which to place your saved state.</param>
-		public override void OnSaveInstanceState(Bundle outState)
+        /// <summary>
+        /// Called to ask the fragment to save its current dynamic state, so it can later be reconstructed in a new instance of its process is
+        /// restarted.
+        /// The date held by the calendar view has to be saved because it is not (for some reason) saved automatically
+        /// </summary>
+        /// <param name="outState">Bundle in which to place your saved state.</param>
+        public override void OnSaveInstanceState(Bundle outState)
 		{
 			base.OnSaveInstanceState(outState);
 
 			outState.PutLong( DueDateLabel, calendarControl.Date );
 		}
 
-		//
-		// Private data
-		//
+        /// <summary>
+        /// Use a GregorianCalendar instance to convert the milliseconds held by the 
+        /// CalendarView to a DateTime and save it.
+        /// This saved value will be updated whenever the user changes the date in the
+        /// CalendarView
+        /// </summary>
+        private void RecordDueDate()
+        {
+            GregorianCalendar setDate = new GregorianCalendar { TimeInMillis = calendarControl.Date };
+            calendarTime = new DateTime( setDate.Get( CalendarField.Year ), setDate.Get( CalendarField.Month ) + 1, setDate.Get( CalendarField.DayOfMonth ) );
+        }
 
-		/// <summary>
-		/// The DueDateDialogueListener instance
-		/// </summary>
-		private DueDateDialogueListener listener = null;
+        //
+        // Private data
+        //
+
+        /// <summary>
+        /// The DueDateDialogueListener instance
+        /// </summary>
+        private IDueDateDialogueListener listener = null;
 
 		/// <summary>
 		/// Keys for storing arguments
@@ -187,6 +203,12 @@ namespace AutoNag
 		/// Offset for interfacing to the Calander control
 		/// </summary>
 		private static DateTime Seventies = new DateTime( 1970, 1, 1 );
+
+        /// <summary>
+        /// The date held by the Calendar View. This value is updated if the user chages
+        /// the date in the view.
+        /// </summary>
+        private DateTime calendarTime;
 	}
 }
 
